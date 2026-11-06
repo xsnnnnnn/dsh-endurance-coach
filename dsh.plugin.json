@@ -1,0 +1,11 @@
+{
+  "name": "dsh-endurance-coach",
+  "description": "Endurance Coach (耐力教练) — an endurance-coaching skill for DeepSeek Harness that turns COROS, iGPSPORT, and Intervals.icu training data into daily training decisions, weekly plans, race preparation, and reviews.",
+  "version": "1.0.0",
+  "entry": {
+    "name": "dsh-endurance-coach",
+    "inject": [
+      "skills"
+    ]
+  }
+}

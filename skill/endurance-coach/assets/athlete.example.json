@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "example": true,
+  "_comment": "这是示例档案（example）：所有数值都是虚构的，第一次使用请逐项替换成你自己的真实数据。字段名说明见各段 note；脚本只读取 location / weather_policy.venues / profile.timezone，其余字段供模型与你自己参考。",
+  "updated": "2026-01-01",
+  "profile": {
+    "nick": "example-runner",
+    "sex": "male",
+    "birthday": "1995-06-15",
+    "height_cm": 178,
+    "weight_kg": 70.0,
+    "timezone": "Asia/Shanghai",
+    "note": "示例：生日/身高体重仅用于负荷与补给估算，可留空。"
+  },
+  "location": {
+    "name": "示例城市",
+    "city": "示例城市",
+    "lat": 30.0,
+    "lon": 120.0,
+    "timezone": "Asia/Shanghai",
+    "note": "示例坐标（虚构）：换成你日常训练地的经纬度；Open-Meteo 支持直接用城市名查询坐标，填好后天气脚本即可取数。"
+  },
+  "weather_policy": {
+    "provider": "open-meteo",
+    "script": "scripts/weather.py",
+    "latest_file": "coach/weather-latest.md",
+    "indoor_fallback": {
+      "run": "跑步机",
+      "bike": "骑行台"
+    },
+    "no_outdoor": {
+      "pm25_gt": 150,
+      "apparent_max_c_ge": 35,
+      "apparent_min_c_le": -15,
+      "gust_kmh_ge": 75,
+      "precip_24h_mm_ge": 5,
+      "any_snow": true,
+      "any_thunder": true,
+      "ice_risk_tmin_c_le": 0
+    },
+    "pace_adjust_s_per_km": {
+      "apparent_max_26c": [10, 20],
+      "apparent_max_30c": [20, 35],
+      "cold_apparent_min_le_-3c": [5, 10]
+    },
+    "venues": [
+      {
+        "name": "示例异地赛事起点",
+        "date": "2027-04-18",
+        "lat": 30.05,
+        "lon": 120.1,
+        "approx": true,
+        "note": "示例：比赛在外地时登记比赛地坐标；weather.py --date 2027-04-18 会自动切到该坐标，用城区数据会误导。"
+      }
+    ]
+  },
+  "coros_baseline": {
+    "vo2max": 48,
+    "running_level": 60,
+    "threshold_pace_s_per_km": 302,
+    "threshold_pace_text": "5:02/km",
+    "race_predictions": {
+      "5k": "22:00",
+      "10k": "45:30",
+      "half": "1:42:00",
+      "marathon": "3:44:00"
+    },
+    "note": "示例：来自设备评估或一次真实比赛；没有设备数据就用手动测试或已完赛成绩，别凭感觉填。"
+  },
+  "races": [
+    {
+      "name": "示例全程马拉松",
+      "date": "2027-04-18",
+      "sport": "road_marathon",
+      "priority": "A",
+      "goal_time": "3:45:00",
+      "goal_pace_s_per_km": 320,
+      "goal_pace_text": "5:20/km",
+      "note": "示例：A 赛决定阶段划分与减量；前半程按目标配速+5s 压住，后半程不掉速。"
+    },
+    {
+      "name": "示例半程马拉松",
+      "date": "2026-12-13",
+      "sport": "road_half_marathon",
+      "priority": "B",
+      "goal": "安全完赛，当作一次质量长距离",
+      "note": "示例：B 赛不完整 taper，赛前 2 天只激活，赛后 1 天恢复跑。"
+    }
+  ],
+  "availability": {
+    "days_per_week": 4,
+    "min_days_per_week": 3,
+    "structure": "示例：周二质量 / 周四质量 / 周六轻松有氧 / 周日长距离",
+    "note": "示例：写出你现实可执行的周结构；两次质量课之间至少隔 1 天。"
+  },
+  "discipline_priority": {
+    "primary": "running",
+    "note": "示例：主项是跑步；骑行作为交叉训练每周 1-2 次、单次 ≤90min、Z2，不计入跑量、不替代跑步课。"
+  },
+  "cycling": {
+    "ftp_w": 200,
+    "lthr_bpm": 160,
+    "max_hr_bpm": 190,
+    "weight_kg": 70.0,
+    "source": "示例：来自 CP20 测试或码表平台的阈值评估",
+    "note": "示例：骑行数据以 iGPSPORT 等码表平台为准；单次 NP/IF/TSS 可信，平台自带的 CTL 类综合负荷算法未经验证，别和 Intervals.icu 混用。"
+  },
+  "pending_tests": [
+    {
+      "name": "CP20 临界功率测试（示例）",
+      "date": "2026-12-06",
+      "target": "20 分钟全力平均功率",
+      "formula": "FTP ≈ 20min 平均功率 × 0.95",
+      "note": "示例：测完再更新 FTP；改第三方平台的 FTP 前必须先征得本人同意。"
+    }
+  ],
+  "constraints": {
+    "injuries": [],
+    "note": "示例：填写既往伤病与禁忌动作；出现持续疼痛、胸闷、心悸立即停练并就医。"
+  },
+  "pace_guide": {
+    "recovery": { "s_per_km": [390, 420], "text": "6:30-7:00/km" },
+    "easy_z2": { "s_per_km": [345, 380], "text": "5:45-6:20/km" },
+    "long_easy": { "s_per_km": [330, 360], "text": "5:30-6:00/km" },
+    "marathon_target": { "s_per_km": [318, 322], "text": "5:18-5:22/km" },
+    "threshold": { "s_per_km": [300, 310], "text": "5:00-5:10/km" },
+    "trail_race": { "mode": "effort", "pct_of_threshold": [90, 100] }
+  },
+  "health_thresholds": {
+    "hrv_normal_range": [45, 80],
+    "hrv_baseline_ms": 62,
+    "resting_hr_7d_baseline_bpm": 52,
+    "rhr_red_flag_delta_bpm": 5,
+    "sleep_score_red_flag": 70,
+    "sleep_hours_red_flag": 6.0,
+    "load_ratio_red_flag": 1.3,
+    "note": "示例：红灯需满足任意 2 项；主观疲劳反馈单独即可触发红灯。数值请按自己的基线设置（连续测 2-4 周再定）。"
+  }
+}

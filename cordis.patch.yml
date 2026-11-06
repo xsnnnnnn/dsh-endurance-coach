@@ -1,0 +1,11 @@
+# dsh-endurance-coach — mount the Endurance Coach skill provider.
+#
+# The plugin resolves the bundled skill directory from import.meta.url, so this
+# row carries no machine-specific path and the bundle is relocatable (directory
+# link, tarball, or git install).
+#
+# Keep the entry id unique and equal to the package name; do not add a trailing
+# comment to the id row.
+- insert:
+    - id: dsh-endurance-coach
+      name: 'dsh-endurance-coach'

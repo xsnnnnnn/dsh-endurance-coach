@@ -1,0 +1,73 @@
+{
+  "name": "dsh-endurance-coach",
+  "version": "1.0.0",
+  "description": "Endurance Coach (耐力教练) — an endurance-coaching skill for DeepSeek Harness that turns COROS, iGPSPORT, and Intervals.icu training data into daily training decisions, weekly plans, race preparation, and reviews.",
+  "icon": "assets/icon.png",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "skill",
+    "coach",
+    "endurance",
+    "running",
+    "cycling",
+    "training"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./assets/icon.png"
+  },
+  "files": [
+    "lib",
+    "skill",
+    "locale",
+    "assets/icon.png",
+    "cordis.patch.yml",
+    "dsh.plugin.json",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "dsh": ">=0.2.1-rc.1"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-skill": "*"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-skill": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "test": "node --test",
+    "test:sandbox": "node --test --test-isolation=none"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dshReleases": {
+        "0.2.1-rc.5": "compatible",
+        "0.2.2-rc.1": "compatible"
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xsnnnnnn/dsh-endurance-coach.git"
+  },
+  "homepage": "https://github.com/xsnnnnnn/dsh-endurance-coach#readme",
+  "bugs": {
+    "url": "https://github.com/xsnnnnnn/dsh-endurance-coach/issues"
+  }
+}
