@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Endurance Coach",
-    "description": "Turn COROS, iGPSPORT, and Intervals.icu endurance data into concrete training decisions: go/no-go readiness, weekly plans, workout reviews, race preparation, and periodic reassessment."
+    "description": "Turn Intervals.icu activities, training load and wellness data into concrete training decisions — go/no-go readiness, weekly plans, workout reviews, race preparation, and periodic reassessment. Training-plan read/write and the sleep/recovery fields Intervals.icu lacks come from COROS; iGPSPORT is a fallback for ride details."
   }
 }

@@ -132,6 +132,31 @@ test('bundled assets include a valid athlete template and a decision-log templat
   }
 });
 
+test('default data source contract: Intervals.icu first, COROS for plans, iGPSPORT fallback', () => {
+  const raw = readSkill();
+  const sources = readFileSync(join(SKILL_DIR, 'references', '01-data-sources.md'), 'utf8');
+
+  // SKILL.md must position Intervals.icu as the default and keep plan writes on COROS.
+  assert.ok(raw.includes('默认数据源 Intervals.icu'), 'SKILL.md description must name Intervals.icu as the default data source');
+  assert.ok(raw.includes('训练计划读写走 COROS'), 'SKILL.md must keep training-plan read/write on COROS');
+
+  // The data-source reference keeps the default tool chain on mcp__intervals__.
+  for (const tool of [
+    'mcp__intervals__',
+    'get_activities',
+    'get_activity_details',
+    'get_activity_intervals',
+    'get_wellness_data',
+    'get_athlete_power_curves',
+  ]) {
+    assert.ok(sources.includes(tool), `01-data-sources.md must document ${tool}`);
+  }
+  // COROS keeps only its three roles: plans, gap-fill, fallback.
+  for (const role of ['训练计划', 'queryTrainingPlanDetails', 'updateTrainingPlan', 'analyze_training_load']) {
+    assert.ok(sources.includes(role), `01-data-sources.md must keep ${role}`);
+  }
+});
+
 test('the skill tree passes generic publication hygiene checks', () => {
   const files = walkFiles(SKILL_DIR);
   assert.ok(files.length >= 15, `expected the full skill tree, found ${files.length} files`);

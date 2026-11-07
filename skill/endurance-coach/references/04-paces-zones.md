@@ -7,10 +7,10 @@
 
 | 基准 | 来源 | 对应字段 |
 |---|---|---|
-| 阈值配速 / VO₂max / 比赛预测 | COROS 评估、最近一次真实比赛、或 5k/10k 计时测试 | `coros_baseline` |
+| 阈值配速 / VO₂max / 比赛预测 | Intervals.icu 的比赛预测、设备评估、最近一次真实比赛，或 5k/10k 计时测试；骑行阈值另见 Intervals.icu 的 eFTP / 功率曲线 | `coros_baseline` |
 | 五区配速 | `<this skill>/scripts/vdot.py` 由 VDOT 反推 | `pace_guide` |
-| 跑步心率区间 | 设备（COROS 手表显示为准）；无设备时按 MaxHR 百分比粗估 | `coros_baseline` / `health_thresholds` |
-| 骑行 FTP / LTHR / MaxHR | CP20 测试、码表平台评估（写入前先征得本人同意） | `cycling` |
+| 跑步心率区间 | 设备（手表显示为准）；无设备时按 MaxHR 百分比粗估。ICU 的 HRV/静息心率是生理基线，**不是**心率分区 | `coros_baseline` / `health_thresholds` |
+| 骑行 FTP / LTHR / MaxHR | CP20 测试、Intervals.icu eFTP / 功率曲线；码表平台只作核对（改任何平台阈值前先征得本人同意） | `cycling` |
 
 ## 2. 配速表（示例：VDOT ≈ 41、目标全马 3:45，example）
 
@@ -65,7 +65,7 @@ VDOT = VO2 / pct
 | I 间歇 | 95–100% | 3–5min 可撑 | 每次 ≤5min，总 ≤8% 周量 | 提 VO₂max |
 | R 重复 | 105–110% | 快而松 | 每次 ≤2min | 速度、跑姿经济性 |
 
-**口径冲突处理**：设备阈值配速（如 COROS 的阈值评估）与 Daniels T 配速常有 5–15s/km 差异。
+**口径冲突处理**：设备评估的阈值配速与 Daniels T 配速常有 5–15s/km 差异。
 → 日常阈值课用设备阈值附近，并用 HRV/睡眠状态校准；状态 CAUTION 时退到 Daniels T。
 → 两套数字不要混着写进同一份课表。
 
@@ -100,6 +100,7 @@ FTP ≈ 20min 平均功率 × 0.95
 ```
 
 - 测完让用户把 20 分钟平均功率发来，再算 FTP。
+- 默认阈值参考 Intervals.icu 的 eFTP 与功率曲线；iGPSPORT 等码表平台的 FTP 只作核对。
 - **改 iGPSPORT 等平台里的 FTP 前必须先征得用户同意**，不要自动写。
 - 更新后刷新 `coach/athlete.json` 的 `cycling` 字段，并重算本文档的功率七区。
 - 建议每 6–8 周复测一次；测前 48h 不做高强度骑行。

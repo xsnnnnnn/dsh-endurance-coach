@@ -12,6 +12,8 @@
 | Load Ratio | 官方 ACWR | 0.8–1.3 | > 1.3 预警；> 1.5 次日强制减量 |
 | rampRate | 周负荷变化 | < 5 | > 8 风险高 |
 
+> 以上负荷指标默认取 ICU `get_wellness_data`（`ctl` / `atl` / `rampRate`）；TSB 用 CTL−ATL 算。官方 Load Ratio 优先，没有才自算，两者不混用。
+
 ## 2. Readiness 三档（红旗表决）
 
 **信号清单（按个人阈值，取自 `coach/athlete.json` → `health_thresholds`）**
@@ -23,6 +25,8 @@
 | 3 | 睡眠 | 睡眠评分 <70 **或** 睡眠时长 <6h |
 | 4 | 负荷 | Load Ratio >1.3，或 ICU rampRate >8 |
 | 5 | 主观 | 用户主动说累 / 酸痛 / 没睡好 / 疼痛 |
+
+> 数据来源（默认 ICU）：HRV、静息心率、睡眠时长、负荷都取 `get_wellness_data`（HRV / `restingHR` / `sleepSecs` / `ctl` / `atl` / `rampRate`）；**睡眠评分 ICU 没有**，只有 COROS `querySleepOverview` 有，取不到就只按睡眠时长判、评分不参与表决。
 
 **表决规则**
 
@@ -52,7 +56,7 @@
 → 红旗 2 项（HRV + 睡眠评分），正确结论是 **RED**，不是「状态很好可以上强度」。
 → 说明：**恢复分高与红旗并不矛盾**，恢复分衡量的是自主神经恢复，睡眠质量差照样该降级。
 
-**规则：恢复分只作为参考项，不进红旗清单。**
+**规则：恢复分只作为参考项，不进红旗清单。**（恢复分只有 COROS 提供，取不到不影响表决，也不进信号计数。）
 
 ## 5. 与负荷的交叉判断
 
@@ -75,3 +79,5 @@ python <this skill>/scripts/readiness.py \
 输出 `PASS / CAUTION / RED / UNKNOWN` + 触发的红旗明细。模型只复述结果，不自行加减。
 `--subjective` 可用 `none / tired / sore / poorsleep / pain`；任意非 `none` 值都是一票否决。
 （上面参数是示例值，实际从 `health_thresholds` 与当日设备数据取。）
+
+**取数映射（默认 ICU）**：`--hrv` / `--rhr` / `--load-ratio` 取 ICU `get_wellness_data`；`--sleep-hours` 用 ICU `sleepSecs`（**在床时长，含清醒**，阈值判断为近似口径）；`--sleep-score` 只有 COROS 有，缺失就**不传该参数**（脚本支持缺省）。

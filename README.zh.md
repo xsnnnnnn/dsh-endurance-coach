@@ -2,7 +2,7 @@
 
 **耐力教练** —— 给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 用的耐力训练决策技能（skill），打包成可安装的 DSH skill-provider bundle。
 
-它把 COROS、iGPSPORT、Intervals.icu 的训练数据转成具体决策：今天练不练、这一周怎么排、某次跑步/骑行复盘、赛前怎么准备、什么时候重新评估能力。技能文件随包分发；插件把它注册进 DSH 的技能注册表，模型和用户都能像内置技能一样加载。
+它默认从 **Intervals.icu** 读训练数据（活动、分圈、秒级流、综合负荷，以及静息心率/HRV/睡眠/eFTP/功率曲线等生理与功率指标）。**COROS** 只用于训练计划的读取与写入（计划唯一权威——高驰计划不会出现在 ICU 日历里），以及 ICU 没有的少数字段（睡眠评分、恢复分）；**iGPSPORT** 仅在 ICU 缺骑行明细时兜底。技能把这些数据转成具体决策：今天练不练、这一周怎么排、某次跑步/骑行复盘、赛前怎么准备、什么时候重新评估能力。技能文件随包分发；插件把它注册进 DSH 的技能注册表，模型和用户都能像内置技能一样加载。
 
 - 包名：`dsh-endurance-coach`（DSH 插件 bundle，技能提供方）
 - 技能名：`endurance-coach`
@@ -71,12 +71,15 @@ dsh plugin --profile desktop add /path/to/dsh-endurance-coach
 | DeepSeek Harness | `>= 0.2.1-rc.1` | bundle 声明 `dsh.bundle.patch`；插件需要 `skills` 服务。 |
 | Node.js | `>= 20` | 宿主插件运行时。bundle 自身**零 npm 运行时依赖**。 |
 | Python | 3.10+ | 随包脚本只使用 **标准库**。 |
-| COROS 数据（推荐） | [`dsh-coros`](https://github.com/xsnnnnnn/dsh-coros) 插件 | 提供技能要用的 COROS MCP 工具（跑步、计划、睡眠）。 |
-| iGPSPORT（可选） | MCP server | 骑行明细与功率数据。 |
-| Intervals.icu（可选） | MCP server | 综合负荷（CTL/ATL/TSB）。 |
+| Intervals.icu（默认数据源） | Intervals.icu MCP server（`mcp__intervals__`） | 活动、分圈、秒级流、综合负荷（CTL/ATL/TSB/rampRate）、生理与恢复（静息心率/HRV/睡眠/eFTP）、功率曲线。 |
+| COROS（计划 + 补位） | [`dsh-coros`](https://github.com/xsnnnnnn/dsh-coros) 插件 | 训练计划读取与写入（计划唯一权威），以及 ICU 没有的字段：睡眠评分、恢复分、HRV 评估状态。 |
+| iGPSPORT（兜底） | MCP server | 只在 ICU 缺该次骑行明细时兜底；核对码表 FTP/LTHR。默认不取。 |
 | 天气 | 无 | 自带 `weather.py` 走 Open-Meteo，无需注册或登录。 |
 
-推荐的配套安装命令：
+推荐配置：
+
+1. 先接入 Intervals.icu MCP server——它是活动、负荷、恢复与功率的默认数据源。
+2. 如果还需要训练计划读写与睡眠/恢复补位，再装 COROS 配套插件：
 
 ```bash
 dsh plugin --profile desktop add 'github:xsnnnnnn/dsh-coros'
@@ -163,4 +166,4 @@ MIT —— Copyright (c) 2026 xsnnnnnn。
 | [strava-coach](https://github.com/AlvaroLaraFF/strava-coach) | 三项分配、合并负荷、游泳指标 |
 | [endurance-coaching](https://github.com/MrHadiSatrio/Skills) | 周期化理论与区间定义 |
 
-这些项目多数默认依赖 Strava API；本技能刻意改读 COROS / iGPSPORT / Intervals.icu / 手动输入。
+这些项目多数默认依赖 Strava API；本技能默认改读 Intervals.icu（活动/负荷/恢复/功率），COROS 只做计划读写与 ICU 缺的字段补位，iGPSPORT 兜底骑行明细，没有数据源时接受手动输入。

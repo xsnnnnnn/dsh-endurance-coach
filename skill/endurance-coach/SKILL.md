@@ -1,6 +1,6 @@
 ---
 name: endurance-coach
-description: 耐力教练——面向耐力运动员的训练决策器。当用户问今天能不能练/练什么、要不要调整本周课表、复盘某次跑步或骑行、备赛马拉松或铁三、算 VDOT/配速/心率/功率区间、判断恢复与负荷、处理疼痛伤病、算比赛补给时使用。数据来自 COROS、iGPSPORT、Intervals.icu。
+description: 耐力教练——面向耐力运动员的训练决策器。当用户问今天能不能练/练什么、要不要调整本周课表、复盘某次跑步或骑行、备赛马拉松或铁三、算 VDOT/配速/心率/功率区间、判断恢复与负荷、处理疼痛伤病、算比赛补给时使用。默认数据源 Intervals.icu（活动/负荷/恢复/功率），训练计划读写走 COROS，iGPSPORT 仅兜底。
 whenToUse: 出现训练计划、晨报、恢复、HRV、静息心率、负荷、CTL/ATL/TSB、配速、区间、课表调整、备赛、减量、复盘、伤病、补给、铁三、比赛等语义时加载
 ---
 
@@ -19,15 +19,15 @@ whenToUse: 出现训练计划、晨报、恢复、HRV、静息心率、负荷、
 2. **填自己的数据**：打开 `coach/athlete.json`，示例值全部是虚构的（带 `example: true`），逐项替换：
    - `location`：日常训练地经纬度（天气取数用；Open-Meteo 支持用城市名查坐标）
    - `races`：A 赛（决定阶段与减量）与 B 赛（安全完赛）的日期、目标时间/配速
-   - `coros_baseline`：阈值配速、VO₂max、比赛预测；没有设备数据就用手动测试或已完赛成绩
+   - `coros_baseline`：阈值配速、VO₂max、比赛预测；数值可来自 Intervals.icu、设备评估或已完赛成绩，没有数据就用手动测试，别凭感觉填
    - `pace_guide` / `health_thresholds` / `cycling` / `availability` / `constraints`
    - `weather_policy.venues`：异地比赛的比赛地坐标
-3. **数据源与依赖**：
-   - 强烈推荐搭配 **dsh-coros-mcp** 插件（提供 `mcp__coros__*` 工具）：跑步执行、训练计划、睡眠/HRV/静息心率。
-   - **iGPSPORT MCP**（可选）：骑行明细、FTP/LTHR/功率分区。
-   - **Intervals.icu MCP**（可选）：综合负荷 CTL/ATL/TSB/rampRate。
+3. **数据源与依赖**（默认只用 Intervals.icu 取数）：
+   - **Intervals.icu MCP**（默认数据源，`mcp__intervals__*`）：活动/课次与分圈（`get_activities` → `get_activity_details` → `get_activity_intervals`）、综合负荷 CTL/ATL/TSB/rampRate、生理与恢复（静息心率/HRV/睡眠在床时长/eFTP）、功率曲线。
+   - **COROS**（`dsh-coros` 插件，`mcp__coros__*`）：训练计划的读取与写入**只走 COROS**（ICU 日历没有高驰计划）；ICU 缺的睡眠评分/恢复分/HRV 评估状态按需补位并标注「COROS 补充」；ICU 不可用时回退。
+   - **iGPSPORT MCP**（可选，仅兜底）：ICU 缺该次骑行明细时兜底；核对码表 FTP/LTHR。默认不取。
    - **天气**：Open-Meteo，无需注册或登录；脚本为 `<this skill>/scripts/weather.py`。
-   - 上述插件一个都没有也能用：把训练数据手动贴给模型，方法论仍然完整成立。
+   - 上述插件一个都没有也能用：把训练数据手动贴给模型（标注「手动」），方法论仍然完整成立。
 4. **数据缺口纪律**：取不到就写「X 数据未取到」，不推断、不填默认值、不编造数字。全部生理数据缺失时明说「无生理数据，未做状态判定」，**不得输出「状态良好」**。
 5. **工作区规则冲突**：若工作区已有自己的 `AGENTS.md` / `RULES.md`（数据源、调度、开关等规则），取数口径以工作区规则为准；怎么判断、怎么设计课以本 skill 为准。两者冲突时先问用户。
 
@@ -52,7 +52,7 @@ whenToUse: 出现训练计划、晨报、恢复、HRV、静息心率、负荷、
 | 主项 / 交叉训练 | `discipline_priority`：主项运动；骑行默认作为交叉训练 |
 | 日常地点 | `location`：天气取数坐标 |
 | 比赛地 | `weather_policy.venues`：按日期自动切坐标 |
-| 数据源 | COROS（跑步/计划/睡眠）· iGPSPORT（骑行）· Intervals.icu（负荷）· Open-Meteo（天气） |
+| 数据源 | Intervals.icu（活动/负荷/恢复/功率，默认）· COROS（计划读写 + 睡眠评分等补位）· iGPSPORT（兜底）· Open-Meteo（天气） |
 
 **阶段由距 A 赛周数决定**（详见 `references/03-periodization.md`）：
 
@@ -71,16 +71,16 @@ B 级赛事（如 10km 越野）不完整 taper，赛后 1 天恢复跑。
 三源分工 + 三条硬禁止 + 睡眠口径 + 写入边界，**每次取数前读 `references/01-data-sources.md`**。
 
 一句话版：
-- 跑步执行/计划/睡眠 → COROS；骑行明细 → iGPSPORT；综合负荷 CTL/ATL/TSB → Intervals.icu。
-- **ICU 活动与 COROS `querySportRecords` 不能相加**；**iGPSPORT 骑行量与 ICU 骑行量不能相加**；**不用 iGPSPORT 的 `analyze_training_load`**。
+- 活动 / 负荷 / 恢复 / 功率 → **Intervals.icu（默认）**；训练计划 → **COROS（唯一权威）**；睡眠评分与恢复分 → COROS 补位（标注「COROS 补充」）；骑行兜底 → iGPSPORT。
+- **同一活动、同一指标只认一个源**：ICU 活动与 COROS `querySportRecords` 不能相加；ICU 骑行量与 iGPSPORT 骑行量不能相加；**不用 iGPSPORT 的 `analyze_training_load`**。
 - 训练计划**只写 COROS**；iGPSPORT 只读（写码表前先问）；ICU 写操作先说明再等确认。
 
 ## 3. 五种工作流
 
 ### W1 · 今日判断（晨报 /「今天练什么」）
-1. 读 `coach/athlete.json`，按 §2 取数（顺序见 `references/01-data-sources.md`）。
+1. 读 `coach/athlete.json`，按 §2 取数（顺序见 `references/01-data-sources.md`）：**先 ICU**（`get_wellness_data` 取负荷与生理 + `get_activities` 取最近活动）；COROS 只补训练计划与 ICU 没有的睡眠评分/恢复分（标注「COROS 补充」）。
 2. **取天气**：若工作区已有 `coach/weather-latest.md` 先直接读（可能由外部定时任务刷新）；缺失、过期或日期不是今天，就跑 `python <this skill>/scripts/weather.py --days 7`；需要落盘给模型读时加 `--out-md coach/weather-latest.md`。得到今天实况、体感、风/降水/空气，以及脚本给出的配速修正与天气最优时段。
-3. 跑 `python <this skill>/scripts/readiness.py --hrv ... --rhr ... --sleep-score ... --sleep-hours ... --load-ratio ...`（参数见 `references/02-load-readiness.md`，个人阈值从 `health_thresholds` 读）。
+3. 跑 `python <this skill>/scripts/readiness.py --hrv ... --rhr ... --sleep-score ... --sleep-hours ... --load-ratio ...`（参数见 `references/02-load-readiness.md`，个人阈值从 `health_thresholds` 读）。`--sleep-hours` 用 ICU `sleepSecs`（在床时长，阈值近似）；`--sleep-score` 只有 COROS 有，取不到就不传这个参数。
 4. 得三档：`PASS / CAUTION / RED`（表决规则与动作见 `references/02-load-readiness.md`）。
 5. 输出 ≤400 字：**一句结论 → 身体状态 → 今日训练（先一句天气，再 计划 vs 建议）→ 一条提醒**（模板见 `references/08-output-templates.md`）。
 6. 若调整了计划：必须同步回 COROS，末尾写「已同步到 COROS」。
@@ -95,7 +95,9 @@ B 级赛事（如 10km 越野）不完整 taper，赛后 1 天恢复跑。
 
 ### W3 · 复盘（单次 / 周 / 滚动）
 - 粒度识别：「这次/昨天那次」=单次；「这周」=周；「最近状态」=滚动 14 天。
-- 明细优先 Intervals.icu；ICU 缺明细（Strava 来源 withheld）才回退 COROS 并注明。
+- 默认用 Intervals.icu：`get_activities` 定位 → `get_activity_details` → `get_activity_intervals`（需要逐秒才 `get_activity_streams`）；综合负荷取 `get_wellness_data`。
+- ICU 缺明细（Strava 来源 withheld）才回退：跑步/COROS、骑行/iGPSPORT，并注明「ICU 缺明细，已回退 X」。
+- 睡眠评分、恢复分用 COROS 补并标注「COROS 补充」；同一活动/同一指标不与 ICU 相加。
 - 用「完成度」评价，不判好坏。三点：做得好 / 差在哪 / 下次怎么改。
 
 ### W4 · 赛前 2–4 周
@@ -158,7 +160,7 @@ B 级赛事（如 10km 越野）不完整 taper，赛后 1 天恢复跑。
 | [strava-coach 技能包](https://github.com/AlvaroLaraFF/strava-coach) | 三项分配、合并负荷、CSS/SWOLF/游量 |
 | [endurance-coaching](https://github.com/MrHadiSatrio/Skills) | 周期化理论与 zone 设定 |
 
-> 借鉴方法论，不照搬其数据依赖：以上项目多数默认 Strava API，本 skill 一律改走 COROS / iGPSPORT / Intervals.icu / 手动输入。
+> 借鉴方法论，不照搬其数据依赖：以上项目多数默认 Strava API，本 skill 默认改走 **Intervals.icu**（活动/负荷/恢复/功率）+ **COROS**（计划读写与 ICU 缺的字段补位）+ **iGPSPORT**（兜底）/ 手动输入。
 
 ## 9. 安全边界与免责声明
 

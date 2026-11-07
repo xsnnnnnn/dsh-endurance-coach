@@ -2,7 +2,7 @@
 
 **Endurance Coach (耐力教练)** — an endurance-coaching skill for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness), packaged as an installable DSH skill-provider bundle.
 
-It turns training data from COROS, iGPSPORT, and Intervals.icu into concrete training decisions: whether to train today, what the week should look like, how a session went, how to prepare for a race, and when to re-evaluate fitness. The skill files ship with the package; the plugin registers the skill with DSH's skill registry so the model and the user can load it like any built-in skill.
+It reads training data primarily from **Intervals.icu** (activities, intervals, streams, training load, and wellness such as resting HR, HRV, sleep, eFTP, and power curves). **COROS** is used only for reading and writing training plans (the plan authority — plans do not appear on the Intervals.icu calendar) and for a few fields Intervals.icu lacks (sleep score, recovery score); **iGPSPORT** is a fallback for ride details. The result is concrete training decisions: whether to train today, what the week should look like, how a session went, how to prepare for a race, and when to re-evaluate fitness. The skill files ship with the package; the plugin registers the skill with DSH's skill registry so the model and the user can load it like any built-in skill.
 
 - Package: `dsh-endurance-coach` (DSH plugin bundle, skill provider)
 - Skill name: `endurance-coach`
@@ -71,12 +71,15 @@ Create them from the bundled templates:
 | DeepSeek Harness | `>= 0.2.1-rc.1` | Bundle declares `dsh.bundle.patch`; the plugin needs the `skills` service. |
 | Node.js | `>= 20` | Host plugin runtime. The bundle itself has **zero npm runtime dependencies**. |
 | Python | 3.10+ | Only the Python **standard library** is used by the bundled scripts. |
-| COROS data (recommended) | [`dsh-coros`](https://github.com/xsnnnnnn/dsh-coros) plugin | Adds the COROS MCP tools the skill expects for runs, plans, and sleep. |
-| iGPSPORT (optional) | MCP server | Cycling detail and power data. |
-| Intervals.icu (optional) | MCP server | Combined training load (CTL/ATL/TSB). |
+| Intervals.icu (primary/default) | Intervals.icu MCP server (`mcp__intervals__`) | Activities, intervals, streams, training load (CTL/ATL/TSB/rampRate), wellness (resting HR, HRV, sleep, eFTP), power curves. |
+| COROS (plans + gap fill) | [`dsh-coros`](https://github.com/xsnnnnnn/dsh-coros) plugin | Training-plan read/write (the only plan authority) plus fields Intervals.icu lacks: sleep score, recovery score, HRV assessment. |
+| iGPSPORT (fallback) | MCP server | Ride details only when Intervals.icu has none; cross-check device FTP/LTHR. Not used by default. |
 | Weather | none | The bundled `weather.py` uses Open-Meteo, which needs no sign-up. |
 
-Recommended companion install:
+Recommended setup:
+
+1. Configure the Intervals.icu MCP server — it is the default data source for activities, load, recovery, and power.
+2. If you also need training-plan read/write and the sleep/recovery supplement, install the COROS companion plugin:
 
 ```bash
 dsh plugin --profile desktop add 'github:xsnnnnnn/dsh-coros'
@@ -163,4 +166,4 @@ The coaching methodology was distilled from ideas in these open-source projects;
 | [strava-coach](https://github.com/AlvaroLaraFF/strava-coach) | triathlon allocation, combined load, swim metrics |
 | [endurance-coaching](https://github.com/MrHadiSatrio/Skills) | periodization theory and zone definitions |
 
-These projects mostly assume Strava APIs; this skill deliberately reads COROS / iGPSPORT / Intervals.icu / manual input instead.
+These projects mostly assume Strava APIs; this skill reads Intervals.icu by default, uses COROS for plan read/write and the fields Intervals.icu lacks, falls back to iGPSPORT for ride details, and accepts manual input when no data source is available.

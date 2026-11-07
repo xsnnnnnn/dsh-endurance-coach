@@ -1,7 +1,7 @@
 {
   "name": "dsh-endurance-coach",
   "version": "1.0.0",
-  "description": "Endurance Coach (耐力教练) — an endurance-coaching skill for DeepSeek Harness that turns COROS, iGPSPORT, and Intervals.icu training data into daily training decisions, weekly plans, race preparation, and reviews.",
+  "description": "Endurance Coach (耐力教练) — an endurance-coaching skill for DeepSeek Harness. By default it reads activities, training load and recovery from Intervals.icu, uses COROS for training-plan read/write and the fields Intervals.icu lacks, and falls back to iGPSPORT for ride details.",
   "icon": "assets/icon.png",
   "keywords": [
     "dsh",
