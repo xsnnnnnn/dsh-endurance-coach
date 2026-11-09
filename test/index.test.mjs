@@ -110,6 +110,11 @@ test('apply registers one provider that exposes the bundled endurance-coach skil
   for (const heading of ['决策公理', 'W1', 'W2', 'W3', 'W4', 'W5', 'references/']) {
     assert.ok(definition.content.includes(heading), `loaded content must mention ${heading}`);
   }
+  assert.ok(definition.content.includes('Intervals.icu'), 'loaded content must name Intervals.icu');
+  for (const tool of ['get_events', 'add_or_update_event', 'delete_event']) {
+    assert.ok(definition.content.includes(tool), `loaded content must document the ICU plan tool ${tool}`);
+  }
+  assert.ok(definition.content.includes('在床'), 'loaded content must document the time-in-bed sleep convention');
   assert.ok(definition.content.includes('## Bundled files'));
   for (const relativePath of [
     'references/01-data-sources.md',

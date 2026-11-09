@@ -8,8 +8,8 @@
 >
 > - 热身段 `warmup`：10–15min E 跑 + 动态拉伸（弓步走、摆腿、高抬腿、开合跳，各 30s）
 > - 冷身段 `cooldown`：10min Z1 + 静态拉伸（股四头、腘绳肌、小腿、臀肌、髂腰肌，各 30s）
-> - `courseDescription` 必须写明「做什么拉伸」，不能只写「热身/冷身」
-> - 写 COROS 结构化课表时，warmup/cooldown 用独立 section 表达，不要合并进主课
+> - 事件描述（`workout_doc.description`）必须写明「做什么拉伸」，不能只写「热身/冷身」
+> - 写 Intervals.icu 结构化事件时，warmup/cooldown 用独立 step 表达，不要合并进主课
 
 ### E · 轻松有氧
 - 时长 40–60min（基础期可 30min），心率封顶 Z2 上沿。
@@ -53,7 +53,7 @@ T 3×10min @ 示例阈值配速，组间 2min 慢跑
 
 ## 2. 骑行课型（默认只做 Z2 交叉）
 
-> 骑行功率基准默认取 Intervals.icu 的 eFTP 与功率曲线（口径见 `04-paces-zones.md`）；码表（iGPSPORT）FTP 只作核对，推码表前先问用户。
+> 骑行功率基准默认取 Intervals.icu 的 eFTP 与功率曲线（口径见 `04-paces-zones.md`）；写入 Intervals.icu 日历事件前先说明并征得用户确认。
 
 | 课型 | 结构 | 说明 |
 |---|---|---|

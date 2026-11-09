@@ -7,10 +7,10 @@
 
 | 基准 | 来源 | 对应字段 |
 |---|---|---|
-| 阈值配速 / VO₂max / 比赛预测 | Intervals.icu 的比赛预测、设备评估、最近一次真实比赛，或 5k/10k 计时测试；骑行阈值另见 Intervals.icu 的 eFTP / 功率曲线 | `coros_baseline` |
+| 阈值配速 / VO₂max / 比赛预测 | Intervals.icu 的阈值/比赛预测与 eFTP、功率曲线，或最近一次真实比赛、5k/10k 计时测试 | `fitness_baseline` |
 | 五区配速 | `<this skill>/scripts/vdot.py` 由 VDOT 反推 | `pace_guide` |
-| 跑步心率区间 | 设备（手表显示为准）；无设备时按 MaxHR 百分比粗估。ICU 的 HRV/静息心率是生理基线，**不是**心率分区 | `coros_baseline` / `health_thresholds` |
-| 骑行 FTP / LTHR / MaxHR | CP20 测试、Intervals.icu eFTP / 功率曲线；码表平台只作核对（改任何平台阈值前先征得本人同意） | `cycling` |
+| 跑步心率区间 | 设备显示或 Intervals.icu 个人资料（手动填进档案）；无数据时按 MaxHR 百分比粗估。Intervals.icu 的 HRV/静息心率是生理基线，**不是**心率分区 | `fitness_baseline` / `health_thresholds` |
+| 骑行 FTP / LTHR / MaxHR | CP20 测试、Intervals.icu eFTP / 功率曲线；两者不一致时以最近的 CP20 测试或功率曲线为准（改档案或平台阈值前先征得本人同意） | `cycling` |
 
 ## 2. 配速表（示例：VDOT ≈ 41、目标全马 3:45，example）
 
@@ -65,14 +65,14 @@ VDOT = VO2 / pct
 | I 间歇 | 95–100% | 3–5min 可撑 | 每次 ≤5min，总 ≤8% 周量 | 提 VO₂max |
 | R 重复 | 105–110% | 快而松 | 每次 ≤2min | 速度、跑姿经济性 |
 
-**口径冲突处理**：设备评估的阈值配速与 Daniels T 配速常有 5–15s/km 差异。
-→ 日常阈值课用设备阈值附近，并用 HRV/睡眠状态校准；状态 CAUTION 时退到 Daniels T。
+**口径冲突处理**：档案里的阈值配速（来自 Intervals.icu / 设备评估 / 比赛成绩）与 Daniels T 配速常有 5–15s/km 差异。
+→ 日常阈值课用档案阈值附近，并用 HRV/睡眠状态校准；状态 CAUTION 时退到 Daniels T。
 → 两套数字不要混着写进同一份课表。
 
 ## 5. 心率
 
-- **跑步心率分区以设备显示为准**（现读，不硬编码）。
-- 未接入设备时粗估：Z2 ≈ HRmax 的 65–75%。示例（example，HRmax 190）：**124–143 bpm**，E 跑封顶 143。
+- **跑步心率分区以档案里的数值为准**（现读，不硬编码）。
+- 档案里没有心率分区数据时粗估：Z2 ≈ HRmax 的 65–75%。示例（example，HRmax 190）：**124–143 bpm**，E 跑封顶 143。
 - 骑行按 Friel 五区（示例 LTHR 160）：Z1 <81%（<130）、Z2 81–89%（130–142）、Z3 90–93%（144–149）、Z4 94–99%（150–158）、Z5 ≥100%（≥160）。
 - 心率是**滞后指标**：I 跑看配速达标，E 跑看心率封顶，T 跑两者都看。
 
@@ -100,8 +100,8 @@ FTP ≈ 20min 平均功率 × 0.95
 ```
 
 - 测完让用户把 20 分钟平均功率发来，再算 FTP。
-- 默认阈值参考 Intervals.icu 的 eFTP 与功率曲线；iGPSPORT 等码表平台的 FTP 只作核对。
-- **改 iGPSPORT 等平台里的 FTP 前必须先征得用户同意**，不要自动写。
+- 默认阈值参考 Intervals.icu 的 eFTP 与功率曲线；两者与 CP20 结果不一致时，以最近的 CP20 测试为准（并在档案 note 里写明来源）。
+- **改任何平台/档案里的 FTP 前必须先征得用户同意**，不要自动写。
 - 更新后刷新 `coach/athlete.json` 的 `cycling` 字段，并重算本文档的功率七区。
 - 建议每 6–8 周复测一次；测前 48h 不做高强度骑行。
 

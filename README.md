@@ -2,7 +2,7 @@
 
 **Endurance Coach (耐力教练)** — an endurance-coaching skill for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness), packaged as an installable DSH skill-provider bundle.
 
-It reads training data primarily from **Intervals.icu** (activities, intervals, streams, training load, and wellness such as resting HR, HRV, sleep, eFTP, and power curves). **COROS** is used only for reading and writing training plans (the plan authority — plans do not appear on the Intervals.icu calendar) and for a few fields Intervals.icu lacks (sleep score, recovery score); **iGPSPORT** is a fallback for ride details. The result is concrete training decisions: whether to train today, what the week should look like, how a session went, how to prepare for a race, and when to re-evaluate fitness. The skill files ship with the package; the plugin registers the skill with DSH's skill registry so the model and the user can load it like any built-in skill.
+It reads **all** training data from **Intervals.icu** (activities, intervals, streams, training load, and wellness such as resting HR, HRV, sleep time-in-bed, eFTP, and power curves), and it uses the Intervals.icu calendar as the training-plan surface: existing sessions are read with `get_events`, and new or adjusted sessions are written back as calendar events with `add_or_update_event` — always described and confirmed with you first. The result is concrete training decisions: whether to train today, what the week should look like, how a session went, how to prepare for a race, and when to re-evaluate fitness. The skill files ship with the package; the plugin registers the skill with DSH's skill registry so the model and the user can load it like any built-in skill.
 
 - Package: `dsh-endurance-coach` (DSH plugin bundle, skill provider)
 - Skill name: `endurance-coach`
@@ -66,26 +66,15 @@ Create them from the bundled templates:
 
 ## Dependencies
 
+The bundle itself has **zero npm runtime dependencies**; it requires DeepSeek Harness `>= 0.2.1-rc.1` and Node.js `>= 20` (see [Install](#install)). The only required data source is Intervals.icu:
+
 | Component | Need | Notes |
 |---|---|---|
-| DeepSeek Harness | `>= 0.2.1-rc.1` | Bundle declares `dsh.bundle.patch`; the plugin needs the `skills` service. |
-| Node.js | `>= 20` | Host plugin runtime. The bundle itself has **zero npm runtime dependencies**. |
+| Intervals.icu (the only data source) | Intervals.icu MCP server (`mcp__intervals__`) | Activities, intervals, streams, training load (CTL/ATL/TSB/rampRate), wellness (resting HR, HRV, sleep time-in-bed, eFTP), power curves, and training-plan calendar events (`get_events` to read, `add_or_update_event` to write/update, `delete_event` to delete). |
 | Python | 3.10+ | Only the Python **standard library** is used by the bundled scripts. |
-| Intervals.icu (primary/default) | Intervals.icu MCP server (`mcp__intervals__`) | Activities, intervals, streams, training load (CTL/ATL/TSB/rampRate), wellness (resting HR, HRV, sleep, eFTP), power curves. |
-| COROS (plans + gap fill) | [`dsh-coros`](https://github.com/xsnnnnnn/dsh-coros) plugin | Training-plan read/write (the only plan authority) plus fields Intervals.icu lacks: sleep score, recovery score, HRV assessment. |
-| iGPSPORT (fallback) | MCP server | Ride details only when Intervals.icu has none; cross-check device FTP/LTHR. Not used by default. |
-| Weather | none | The bundled `weather.py` uses Open-Meteo, which needs no sign-up. |
+| Weather | Open-Meteo — no account needed | The bundled `weather.py` calls the public Open-Meteo APIs, which need no sign-up. |
 
-Recommended setup:
-
-1. Configure the Intervals.icu MCP server — it is the default data source for activities, load, recovery, and power.
-2. If you also need training-plan read/write and the sleep/recovery supplement, install the COROS companion plugin:
-
-```bash
-dsh plugin --profile desktop add 'github:xsnnnnnn/dsh-coros'
-```
-
-If a data source is missing, the skill is supposed to say "that data was not available" instead of inventing numbers. You can also use it with manual numbers only.
+If the Intervals.icu MCP server is missing, the skill reports "that data was not available" instead of inventing numbers, and there is no second data source to fall back to. You can also use it with manually supplied numbers only.
 
 ## What it does
 
@@ -94,7 +83,7 @@ If a data source is missing, the skill is supposed to say "that data was not ava
 | Workflow | When | Output |
 |---|---|---|
 | **W1 · Today** | "Should I train today?" / morning check | A go / caution / rest decision, today's session with a weather note, one reminder. |
-| **W2 · Week** | "Plan my week" / adjust the plan | Rolling two-week schedule with phase, session mix, and weather-aware placements. |
+| **W2 · Week** | "Plan my week" / adjust the plan | Rolling two-week schedule with phase, session mix, and weather-aware placements; changes are written back to the Intervals.icu calendar as events after confirmation. |
 | **W3 · Review** | "Review that run/ride" / "how was this week" | Completion-based review: what went well, what did not, what changes next. |
 | **W4 · Race prep** | 2–4 weeks before a race | Taper curve, segment pacing, fueling plan, heat/humidity correction, recovery week. |
 | **W5 · Reassessment** | Every 4 weeks or after a new result | Recalculate VDOT/thresholds; only fully replace zones when the change is meaningful. |
@@ -106,8 +95,8 @@ If a data source is missing, the skill is supposed to say "that data was not ava
 - **Arithmetic belongs to scripts.** VDOT, pace conversion, readiness flags, fueling, and weather corrections are computed by `scripts/*.py`; the model retells the result.
 - **Small changes only.** A single adjustment is at most ±30%, at most two proactive adjustments per week; three red-light days trigger a 20–30% deload week.
 - **No medical diagnosis.** Persistent pain, chest tightness, or palpitations mean stop and see a doctor.
-- **No internal IDs in answers.** Plan IDs, workout IDs, and similar handles stay internal.
-- **Warm-up and cooldown on every session**, weather corrections are applied before the session is written, and training plans are written only to COROS.
+- **No internal IDs in answers.** Event IDs, activity IDs, and similar handles stay internal.
+- **Warm-up and cooldown on every session**, weather corrections are applied before the session is written, and training plans are read from and written to the Intervals.icu calendar as events — every write (including edits and deletions) is described and confirmed with you first.
 
 ## Repository layout
 
@@ -166,4 +155,4 @@ The coaching methodology was distilled from ideas in these open-source projects;
 | [strava-coach](https://github.com/AlvaroLaraFF/strava-coach) | triathlon allocation, combined load, swim metrics |
 | [endurance-coaching](https://github.com/MrHadiSatrio/Skills) | periodization theory and zone definitions |
 
-These projects mostly assume Strava APIs; this skill reads Intervals.icu by default, uses COROS for plan read/write and the fields Intervals.icu lacks, falls back to iGPSPORT for ride details, and accepts manual input when no data source is available.
+These projects mostly assume Strava APIs; this skill reads Intervals.icu as its only data source (activities, load, recovery, power, and plan calendar events), and accepts manual input when Intervals.icu is unavailable — there is no second data-source fallback.

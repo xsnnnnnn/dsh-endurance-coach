@@ -1,6 +1,6 @@
 # 02 · 负荷与恢复判断（W1/W3 必读）
 
-> 目标：**不靠单一「恢复分」**，用多信号红旗表决。设备恢复分经常偏乐观。
+> 目标：**不靠单一指标**，用多信号红旗表决。设备自带的「状态分」经常偏乐观。
 
 ## 1. 负荷指标
 
@@ -12,7 +12,7 @@
 | Load Ratio | 官方 ACWR | 0.8–1.3 | > 1.3 预警；> 1.5 次日强制减量 |
 | rampRate | 周负荷变化 | < 5 | > 8 风险高 |
 
-> 以上负荷指标默认取 ICU `get_wellness_data`（`ctl` / `atl` / `rampRate`）；TSB 用 CTL−ATL 算。官方 Load Ratio 优先，没有才自算，两者不混用。
+> 以上负荷指标取 ICU `get_wellness_data`（`ctl` / `atl` / `rampRate`）；TSB 用 CTL−ATL 算。官方 Load Ratio 优先，没有才自算，两者不混用。
 
 ## 2. Readiness 三档（红旗表决）
 
@@ -22,11 +22,11 @@
 |---|---|---|
 | 1 | 睡眠 HRV | 低于正常区间下限，或较 7 日均值低 ≥20% |
 | 2 | 静息心率 | 较 7 日基线高 ≥5 bpm（`rhr_red_flag_delta_bpm`） |
-| 3 | 睡眠 | 睡眠评分 <70 **或** 睡眠时长 <6h |
+| 3 | 睡眠 | 睡眠时长（在床口径近似）<6h |
 | 4 | 负荷 | Load Ratio >1.3，或 ICU rampRate >8 |
 | 5 | 主观 | 用户主动说累 / 酸痛 / 没睡好 / 疼痛 |
 
-> 数据来源（默认 ICU）：HRV、静息心率、睡眠时长、负荷都取 `get_wellness_data`（HRV / `restingHR` / `sleepSecs` / `ctl` / `atl` / `rampRate`）；**睡眠评分 ICU 没有**，只有 COROS `querySleepOverview` 有，取不到就只按睡眠时长判、评分不参与表决。
+> 数据来源（唯一源 Intervals.icu）：HRV、静息心率、睡眠时长、负荷都取 `get_wellness_data`（HRV / `restingHR` / `sleepSecs` / `ctl` / `atl` / `rampRate`）；**Intervals.icu 没有睡眠评分**，评分不参与表决，只按睡眠时长（在床口径）判。
 
 **表决规则**
 
@@ -50,13 +50,13 @@
 
 **连续 3 天 RED** → 建议整周减量 20–30%，并在 `coach/decisions.log.md` 记录。
 
-## 4. 「恢复分偏乐观」的典型模式
+## 4. 「设备状态分偏乐观」的典型模式
 
-**案例（example，虚构数据）**：设备显示恢复分 100（Fresh），但 HRV 44ms（低于正常下限 45）、睡眠 5h55m / 评分 64、静息心率 56（基线 52，+4bpm 未达 5bpm 阈值但方向一致）。
-→ 红旗 2 项（HRV + 睡眠评分），正确结论是 **RED**，不是「状态很好可以上强度」。
-→ 说明：**恢复分高与红旗并不矛盾**，恢复分衡量的是自主神经恢复，睡眠质量差照样该降级。
+**案例（example，虚构数据）**：手表显示「状态良好」（自带状态分 100），但 HRV 44ms（低于正常下限 45）、睡眠 5h55m、静息心率 56（基线 52，+4bpm 未达 5bpm 阈值但方向一致）。
+→ 红旗 2 项（HRV + 睡眠时长），正确结论是 **RED**，不是「状态很好可以上强度」。
+→ 说明：**设备状态分高与红旗并不矛盾**；它只是一项参考，睡眠差、HRV 低照样该降级。
 
-**规则：恢复分只作为参考项，不进红旗清单。**（恢复分只有 COROS 提供，取不到不影响表决，也不进信号计数。）
+**规则：设备自带的「状态分」不进红旗清单，也不作为判定依据。**
 
 ## 5. 与负荷的交叉判断
 
@@ -71,13 +71,13 @@
 python <this skill>/scripts/readiness.py \
   --hrv 48 --hrv-baseline 62 --hrv-normal 45 80 \
   --rhr 54 --rhr-baseline 52 \
-  --sleep-score 64 --sleep-hours 5.9 \
+  --sleep-hours 5.9 \
   --load-ratio 1.18 \
   --subjective none
 ```
 
 输出 `PASS / CAUTION / RED / UNKNOWN` + 触发的红旗明细。模型只复述结果，不自行加减。
 `--subjective` 可用 `none / tired / sore / poorsleep / pain`；任意非 `none` 值都是一票否决。
-（上面参数是示例值，实际从 `health_thresholds` 与当日设备数据取。）
+（上面参数是示例值，实际从 `health_thresholds` 与 Intervals.icu `get_wellness_data` 的当日数据取。）
 
-**取数映射（默认 ICU）**：`--hrv` / `--rhr` / `--load-ratio` 取 ICU `get_wellness_data`；`--sleep-hours` 用 ICU `sleepSecs`（**在床时长，含清醒**，阈值判断为近似口径）；`--sleep-score` 只有 COROS 有，缺失就**不传该参数**（脚本支持缺省）。
+**取数映射（唯一源 Intervals.icu）**：`--hrv` / `--rhr` / `--load-ratio` 取 `get_wellness_data`；`--sleep-hours` 用 `sleepSecs`（**在床时长，含清醒**，阈值判断为近似口径）；Intervals.icu 没有睡眠评分，`--sleep-score` 缺失就**不传该参数**（脚本支持缺省）。

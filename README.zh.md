@@ -2,7 +2,7 @@
 
 **耐力教练** —— 给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 用的耐力训练决策技能（skill），打包成可安装的 DSH skill-provider bundle。
 
-它默认从 **Intervals.icu** 读训练数据（活动、分圈、秒级流、综合负荷，以及静息心率/HRV/睡眠/eFTP/功率曲线等生理与功率指标）。**COROS** 只用于训练计划的读取与写入（计划唯一权威——高驰计划不会出现在 ICU 日历里），以及 ICU 没有的少数字段（睡眠评分、恢复分）；**iGPSPORT** 仅在 ICU 缺骑行明细时兜底。技能把这些数据转成具体决策：今天练不练、这一周怎么排、某次跑步/骑行复盘、赛前怎么准备、什么时候重新评估能力。技能文件随包分发；插件把它注册进 DSH 的技能注册表，模型和用户都能像内置技能一样加载。
+它从 **Intervals.icu** 读取**全部**训练数据（活动、分圈、秒级流、综合负荷，以及静息心率/HRV/睡眠在床时长/eFTP/功率曲线等生理与功率指标），并把 Intervals.icu 日历当作训练计划的承载面：已有安排用 `get_events` 读，新增或调整的课程用 `add_or_update_event` 写回日历事件——每次写入都会先说明改动、等你确认。技能把这些数据转成具体决策：今天练不练、这一周怎么排、某次跑步/骑行复盘、赛前怎么准备、什么时候重新评估能力。技能文件随包分发；插件把它注册进 DSH 的技能注册表，模型和用户都能像内置技能一样加载。
 
 - 包名：`dsh-endurance-coach`（DSH 插件 bundle，技能提供方）
 - 技能名：`endurance-coach`
@@ -66,26 +66,15 @@ dsh plugin --profile desktop add /path/to/dsh-endurance-coach
 
 ## 依赖
 
+bundle 自身**零 npm 运行时依赖**；需要 DeepSeek Harness `>= 0.2.1-rc.1` 与 Node.js `>= 20`（见[安装](#安装)）。数据源只需要 Intervals.icu：
+
 | 组件 | 要求 | 说明 |
 |---|---|---|
-| DeepSeek Harness | `>= 0.2.1-rc.1` | bundle 声明 `dsh.bundle.patch`；插件需要 `skills` 服务。 |
-| Node.js | `>= 20` | 宿主插件运行时。bundle 自身**零 npm 运行时依赖**。 |
+| Intervals.icu（唯一数据源） | Intervals.icu MCP server（`mcp__intervals__`） | 活动、分圈、秒级流、综合负荷（CTL/ATL/TSB/rampRate）、生理与恢复（静息心率/HRV/睡眠在床时长/eFTP）、功率曲线，以及训练计划日历事件（`get_events` 读、`add_or_update_event` 写/改、`delete_event` 删）。 |
 | Python | 3.10+ | 随包脚本只使用 **标准库**。 |
-| Intervals.icu（默认数据源） | Intervals.icu MCP server（`mcp__intervals__`） | 活动、分圈、秒级流、综合负荷（CTL/ATL/TSB/rampRate）、生理与恢复（静息心率/HRV/睡眠/eFTP）、功率曲线。 |
-| COROS（计划 + 补位） | [`dsh-coros`](https://github.com/xsnnnnnn/dsh-coros) 插件 | 训练计划读取与写入（计划唯一权威），以及 ICU 没有的字段：睡眠评分、恢复分、HRV 评估状态。 |
-| iGPSPORT（兜底） | MCP server | 只在 ICU 缺该次骑行明细时兜底；核对码表 FTP/LTHR。默认不取。 |
-| 天气 | 无 | 自带 `weather.py` 走 Open-Meteo，无需注册或登录。 |
+| 天气 | Open-Meteo，无需注册 | 自带 `weather.py` 调用 Open-Meteo 公开接口，不需要账号。 |
 
-推荐配置：
-
-1. 先接入 Intervals.icu MCP server——它是活动、负荷、恢复与功率的默认数据源。
-2. 如果还需要训练计划读写与睡眠/恢复补位，再装 COROS 配套插件：
-
-```bash
-dsh plugin --profile desktop add 'github:xsnnnnnn/dsh-coros'
-```
-
-数据源缺失时，技能应明确说「该数据未取到」，而不是编数字。只用人工输入的数字也可以。
+Intervals.icu MCP server 缺失时，技能应明确说「该数据未取到」，而不是编数字；**没有第二数据源可回退**。只用人工输入的数字也可以。
 
 ## 它能做什么
 
@@ -94,7 +83,7 @@ dsh plugin --profile desktop add 'github:xsnnnnnn/dsh-coros'
 | 工作流 | 触发场景 | 产出 |
 |---|---|---|
 | **W1 · 今日判断** | 「今天能不能练」「今天练什么」/ 晨报 | 可练 / 谨慎 / 休息三档结论、今日课表 + 天气提示、一条提醒。 |
-| **W2 · 周计划** | 「排一下这周」/ 调整课表 | 滚动两周排课：阶段、课型配比、结合天气的落位。 |
+| **W2 · 周计划** | 「排一下这周」/ 调整课表 | 滚动两周排课：阶段、课型配比、结合天气的落位；调整经确认后以日历事件写回 Intervals.icu。 |
 | **W3 · 复盘** | 「复盘这次跑步/骑行」「这周怎么样」 | 以完成度为标准的复盘：做得好、差在哪、下次怎么改。 |
 | **W4 · 赛前 2–4 周** | 备赛 | 减量曲线、分段配速、补给计划、湿热修正、赛后恢复周。 |
 | **W5 · 周期重评** | 每 4 周或出现新成绩 | 重算 VDOT / 阈值；变化足够大才全量替换区间。 |
@@ -106,8 +95,8 @@ dsh plugin --profile desktop add 'github:xsnnnnnn/dsh-coros'
 - **算术交给脚本**：VDOT、配速换算、恢复判定、补给量、天气修正由 `scripts/*.py` 计算，模型只复述结果。
 - **只做小调整**：单次调整 ≤ ±30%，每周最多主动调整 2 次；连续 3 天红灯则整周减量 20–30%。
 - **不做医疗诊断**：持续疼痛、胸闷、心悸 → 停练并建议就医。
-- **不向用户展示内部 ID**：Plan ID / Workout ID 等只留在内部。
-- **每节课都有热身与放松**；写课前先做天气修正；训练计划只写入 COROS。
+- **不向用户展示内部 ID**：事件 ID / 活动 ID 等只留在内部。
+- **每节课都有热身与放松**；写课前先做天气修正；训练计划以日历事件的形式从 Intervals.icu 读取并写回，**每次写入（含改、删）都先说明并等你确认**。
 
 ## 仓库结构
 
@@ -166,4 +155,4 @@ MIT —— Copyright (c) 2026 xsnnnnnn。
 | [strava-coach](https://github.com/AlvaroLaraFF/strava-coach) | 三项分配、合并负荷、游泳指标 |
 | [endurance-coaching](https://github.com/MrHadiSatrio/Skills) | 周期化理论与区间定义 |
 
-这些项目多数默认依赖 Strava API；本技能默认改读 Intervals.icu（活动/负荷/恢复/功率），COROS 只做计划读写与 ICU 缺的字段补位，iGPSPORT 兜底骑行明细，没有数据源时接受手动输入。
+这些项目多数默认依赖 Strava API；本技能把 Intervals.icu 作为唯一数据源（活动/负荷/恢复/功率 + 计划日历事件），Intervals.icu 不可用时接受手动输入，**没有第二数据源可回退**。

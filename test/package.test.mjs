@@ -16,13 +16,14 @@ const MAX_ICON_BYTES = 256 * 1024;
 
 test('package.json declares the expected bundle identity', () => {
   assert.equal(pkg.name, 'dsh-endurance-coach');
-  assert.equal(pkg.version, '1.0.0');
+  assert.equal(pkg.version, '1.1.0');
   assert.equal(pkg.type, 'module');
   assert.equal(pkg.main, 'lib/index.js');
   assert.equal(pkg.license, 'MIT');
   assert.equal(pkg.icon, 'assets/icon.png');
   assert.equal(typeof pkg.description, 'string');
   assert.ok(pkg.description.length > 20);
+  assert.ok(pkg.description.includes('Intervals.icu'), 'description must name the single data source');
 });
 
 test('package.json exports the entry points a bundle is expected to expose', () => {
@@ -129,6 +130,22 @@ test('LICENSE is the MIT license attributed to xsnnnnnn', () => {
   assert.ok(license.includes('WITHOUT WARRANTY OF ANY KIND'));
 });
 
+/** Rows of a README dependency table, excluding the header and separator lines. */
+function dependencyTableRows(text) {
+  const lines = text.split(/\r?\n/u);
+  const start = lines.findIndex((line) => /^## (?:Dependencies|依赖)\s*$/u.test(line));
+  assert.ok(start >= 0, 'README must have a Dependencies / 依赖 section');
+  const rows = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^## /u.test(line)) break;
+    if (!line.trimStart().startsWith('|')) continue;
+    if (/^\|[\s:|-]+\|$/u.test(line.trim())) continue;
+    if (/\|\s*(?:Component|组件)\s*\|/u.test(line)) continue;
+    rows.push(line);
+  }
+  return rows;
+}
+
 test('READMEs exist and document install, setup, and safety', () => {
   for (const filename of ['README.md', 'README.zh.md']) {
     const text = read(filename);
@@ -139,5 +156,18 @@ test('READMEs exist and document install, setup, and safety', () => {
     assert.ok(text.includes('init_athlete.py'));
     assert.ok(text.includes('not medical advice') || text.includes('不是医疗建议'));
     assert.ok(text.includes('MIT'));
+    assert.ok(/get_events/u.test(text) && /add_or_update_event/u.test(text), `${filename} must document Intervals.icu plan events`);
+  }
+});
+
+test('README dependency tables list Intervals.icu as the only data source', () => {
+  for (const filename of ['README.md', 'README.zh.md']) {
+    const rows = dependencyTableRows(read(filename));
+    assert.equal(rows.length, 3, `${filename}: the dependency table must list exactly three components`);
+    const allowed = [/Intervals\.icu/u, /\bPython\b/u, /Open-Meteo/u];
+    for (const row of rows) {
+      assert.ok(allowed.some((pattern) => pattern.test(row)), `${filename}: unexpected dependency row: ${row}`);
+    }
+    assert.ok(rows.some((row) => row.includes('Intervals.icu')), `${filename}: dependency table must list Intervals.icu`);
   }
 });

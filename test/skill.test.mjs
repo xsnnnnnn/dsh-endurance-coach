@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
@@ -29,10 +29,27 @@ const ABSOLUTE_PATH_RE = /(?:[A-Za-z]:\\|\/Users\/|\/home\/)/u;
 const CREDENTIAL_RE = /password|secret|token|api[_-]?key/iu;
 const PRIVATE_WORKSPACE_REFS = ['coach/AGENTS.md', 'coach/RULES.md', '.dsh/skills'];
 
+/**
+ * The published bundle must be Intervals.icu-only. These names are assembled at
+ * runtime on purpose: this test file is inside the package under test, so a
+ * literal would make the very scan it defines fail.
+ */
+const BANNED_SOURCE_RE = new RegExp(
+  [
+    ['C', 'O', 'R', 'O', 'S'].join(''),
+    ['i', 'G', 'P', 'S', 'P', 'O', 'R', 'T'].join(''),
+    ['高', '驰'].join(''),
+  ].join('|'),
+  'iu',
+);
+
+const SKIPPED_DIRECTORIES = new Set(['.git', 'node_modules']);
+
 function walkFiles(directory) {
   const files = [];
   if (!existsSync(directory)) return files;
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    if (entry.name.startsWith('.fixture-') || SKIPPED_DIRECTORIES.has(entry.name)) continue;
     const full = join(directory, entry.name);
     if (entry.isDirectory()) files.push(...walkFiles(full));
     else if (entry.isFile()) files.push(full);
@@ -132,15 +149,16 @@ test('bundled assets include a valid athlete template and a decision-log templat
   }
 });
 
-test('default data source contract: Intervals.icu first, COROS for plans, iGPSPORT fallback', () => {
+test('ICU-only contract: Intervals.icu is the single data source and the only plan surface', () => {
   const raw = readSkill();
   const sources = readFileSync(join(SKILL_DIR, 'references', '01-data-sources.md'), 'utf8');
 
-  // SKILL.md must position Intervals.icu as the default and keep plan writes on COROS.
+  // SKILL.md positions Intervals.icu as the one and only data source.
   assert.ok(raw.includes('默认数据源 Intervals.icu'), 'SKILL.md description must name Intervals.icu as the default data source');
-  assert.ok(raw.includes('训练计划读写走 COROS'), 'SKILL.md must keep training-plan read/write on COROS');
+  assert.ok(raw.includes('唯一数据源'), 'SKILL.md must state that Intervals.icu is the single data source');
+  assert.ok(sources.includes('唯一数据源'), '01-data-sources.md must state the single-source rule');
 
-  // The data-source reference keeps the default tool chain on mcp__intervals__.
+  // The activity / load / recovery chain stays on mcp__intervals__.
   for (const tool of [
     'mcp__intervals__',
     'get_activities',
@@ -151,10 +169,37 @@ test('default data source contract: Intervals.icu first, COROS for plans, iGPSPO
   ]) {
     assert.ok(sources.includes(tool), `01-data-sources.md must document ${tool}`);
   }
-  // COROS keeps only its three roles: plans, gap-fill, fallback.
-  for (const role of ['训练计划', 'queryTrainingPlanDetails', 'updateTrainingPlan', 'analyze_training_load']) {
-    assert.ok(sources.includes(role), `01-data-sources.md must keep ${role}`);
+
+  // Plans are Intervals.icu calendar events: read, write/update, delete, confirmed first.
+  for (const tool of ['get_events', 'add_or_update_event', 'delete_event']) {
+    assert.ok(raw.includes(tool), `SKILL.md must document the plan tool ${tool}`);
+    assert.ok(sources.includes(tool), `01-data-sources.md must document the plan tool ${tool}`);
   }
+  assert.ok(raw.includes('确认'), 'SKILL.md must require user confirmation before plan writes');
+  assert.ok(sources.includes('确认'), '01-data-sources.md must spell out the write-confirmation boundary');
+  assert.ok(raw.includes('已同步到 Intervals.icu 日历'), 'SKILL.md must report plan sync as "已同步到 Intervals.icu 日历"');
+
+  // Sleep is time-in-bed only; there is no sleep score or recovery score to fill in.
+  assert.ok(raw.includes('在床'), 'SKILL.md must document the time-in-bed sleep convention');
+  assert.ok(sources.includes('在床'), '01-data-sources.md must document the time-in-bed sleep convention');
+  assert.ok(sources.includes('--sleep-score'), '01-data-sources.md must explain the missing --sleep-score parameter');
+  assert.ok(sources.includes('不传'), '01-data-sources.md must say --sleep-score is omitted when unavailable');
+});
+
+test('the published bundle never mentions another training-data platform', () => {
+  const offenders = [];
+  for (const path of walkFiles(PACKAGE_ROOT)) {
+    if (path.endsWith('.png')) continue;
+    const match = BANNED_SOURCE_RE.exec(readFileSync(path, 'utf8'));
+    if (match !== null) offenders.push(`${relative(PACKAGE_ROOT, path)}: ${match[0]}`);
+  }
+  assert.deepEqual(offenders, [], `no other training-data platform may be mentioned: ${offenders.join(', ')}`);
+});
+
+test('the athlete template uses the neutral fitness_baseline field name', () => {
+  const template = readFileSync(join(SKILL_DIR, 'assets', 'athlete.example.json'), 'utf8');
+  assert.ok(template.includes('"fitness_baseline"'), 'athlete template must use fitness_baseline');
+  assert.ok(!template.includes(['c', 'o', 'r', 'o', 's'].join('') + '_baseline'), 'athlete template must not keep the old vendor-named field');
 });
 
 test('the skill tree passes generic publication hygiene checks', () => {
