@@ -105,7 +105,16 @@ B 级赛事（如 10km 越野）不完整 taper，赛后 1 天恢复跑。
 ### W5 · 周期重评（每 4 周或出现新成绩）
 新成绩 → 重算 VDOT（`<this skill>/scripts/vdot.py`）→ 变化 ≥2 才全量替换配速区间 → 写 `coach/decisions.log.md`。
 
-## 4. 九条硬性训练规则
+### W6 · 越野备赛（日历上出现越野赛，或用户要去跑山）
+1. **先读 `references/10-trail.md`**，不要在对话里即兴编越野课。
+2. 做赛事需求分析：距离 / 爬升 / 下降 / 技术度 / 检查点与关门 → 定「主限制」四选一（有氧底盘、爬坡力量耐力、下坡与技术、补给与胃）。
+3. 算量：`python <this skill>/scripts/trail.py --distance-km X --climb-m Y [--week-climb Z]`
+   拿 km-effort、档位、补给档、周爬升护栏；**模型只复述脚本结果**。
+4. 排课：用「时间 + 爬升」替换长距离课，不额外加跑量；一周最多 1 次大下坡。
+5. 冲突时让位：越野为 B/C 赛时按 `references/03-periodization.md` 的 B 赛规则，不完整 taper。
+6. 写回注意：越野课的目标用**距离/爬升**表达，强度用心率区或 RPE，不套平路配速目标。
+
+## 4. 硬性训练规则
 
 1. 周跑量增幅 >10% → 截断到 10%，标 ⚠️。
 2. 连续 2 天高强度后，第 3 天强制 E 跑或休息。
@@ -114,19 +123,21 @@ B 级赛事（如 10km 越野）不完整 taper，赛后 1 天恢复跑。
 5. Load Ratio >1.5 → 次日强制 E 跑或休息。
 6. 无官方 Load Ratio 时才用 ATL/CTL 自算，**两者不混用**。
 7. 力量日动作须在动作库内，排除本人 `banned` 项；被排除的槽位由同部位动作确定性替补，不留空。
-8. **天气修正**：先取天气（`<this skill>/scripts/weather.py` 或 `coach/weather-latest.md`）。体感 ≥26℃ 降速 10–20s/km；≥30℃ 再降；≥35℃ 只保时长或转室内；≤-3℃ 热身加倍；雪/结冰/雷暴/PM2.5>150 户外取消。**无气象数据不臆造**。
+8. **天气修正**：先取天气（`<this skill>/scripts/weather.py` 或 `coach/weather-latest.md`）。体感 ≥26℃ 降速 10–20s/km；≥30℃ 再降；≥35℃ 只保时长或转室内；≤-3℃ 热身加倍；雪/结冰/雷暴/AQI>200 户外取消。**空气只看 AQI，不看 PM2.5 模型原值**（CAMS 在中国常偏高 6~10 倍，脚本已用站点实测锚定；标「模型估算」的不据此取消）。**无气象数据不臆造**。
 9. 每节课必须含热身与拉伸（warmup 动态 + cooldown 静态 10min），事件描述与 step 文本写明拉伸内容。
+10. **越野专项**：周爬升增幅 ≤10%、不与跑量同时加；大下坡次日不排质量课；越野距离与路跑距离**不相加**当周跑量。细则 `references/10-trail.md`。
 
-## 5. 三项能力边界
+## 5. 能力边界
 
 | 项目 | 能力 | 默认策略 |
 |---|---|---|
-| 跑步 | 完整课型与周期 | **主项**，一切以 A 赛为先 |
+| 跑步（路跑） | 完整课型与周期 | **主项**，一切以 A 赛为先 |
+| 越野 | 赛事需求分析、四能力、爬升剂量、上下坡技术、按小时补给 | 无赛只维持低量跑山；有赛走 W6，且让位 A 赛 |
 | 骑行 | FTP 七区、课型、ZWO 结构、功率曲线 | 默认只排 Z2 交叉；用户要专项才展开 |
 | 游泳 | CSS / SWOLF / 游量分析、课型生成 | 需用户提供池长与测试数据，否则只说方法 |
 | 铁三 | 三项分配、砖训练、换项、赛事执行 | 有明确需求才展开；不主动安排 |
 
-详见 `references/05-workouts.md` 与 `references/06-race-execution.md`。
+详见 `references/05-workouts.md`、`references/06-race-execution.md`、`references/10-trail.md`。
 
 ## 6. 与工作区既有规则的关系
 
@@ -147,6 +158,7 @@ B 级赛事（如 10km 越野）不完整 taper，赛后 1 天恢复跑。
 | `references/07-injury-nutrition.md` | 疼痛/伤病降级、补给计算 |
 | `references/08-output-templates.md` | 写晨报/周报/复盘/分享文案 |
 | `references/09-weather.md` | 取天气、天气修正阈值、赛前天气流程、写进事件描述 |
+| `references/10-trail.md` | W6、越野赛事分析、爬升剂量、上下坡课型、越野补给与赛后（无越野赛不用读） |
 
 ## 8. 方法论来源（本 skill 蒸馏自）
 
@@ -158,6 +170,8 @@ B 级赛事（如 10km 越野）不完整 taper，赛后 1 天恢复跑。
 | [claude-coach / Coach Skill](https://github.com/felixrieseberg/claude-coach) | 周期化分层、赛事执行、reference 分文件结构 |
 | [strava-coach 技能包](https://github.com/AlvaroLaraFF/strava-coach) | 三项分配、合并负荷、CSS/SWOLF/游量 |
 | [endurance-coaching](https://github.com/MrHadiSatrio/Skills) | 周期化理论与 zone 设定 |
+| [agentic_sports_coach](https://github.com/like-a-freedom/agentic_sports_coach) | 越野：赛事需求分析、四能力划分、力量阶梯、爬升与周量护栏、补给序列（见 `references/10-trail.md`） |
+| [human-upgrade-plan](https://github.com/97657407-cmd/human-upgrade-plan) | 越野：按小时补给、检查点流程、首野保守档、下坡次日不排质量、上坡课剂量 |
 
 > 借鉴方法论，不照搬其数据依赖：以上项目多数默认 Strava API，本 skill 改成 **Intervals.icu 唯一数据源**（活动/负荷/恢复/功率 + 计划日历事件），只有用户手动提供数据时才用「手动」输入。
 
@@ -165,5 +179,5 @@ B 级赛事（如 10km 越野）不完整 taper，赛后 1 天恢复跑。
 
 - 本 skill 提供**训练决策建议，不是医疗建议**：不诊断、不开处方、不替代医生与康复师。
 - 出现**持续疼痛、胸闷、心悸、头晕、发热、夜间痛、关节不稳、跛行** → 立即停练并就医；不做「忍一忍就过去」的建议。
-- 极端天气（雷暴/暴雪/暴雨/结冰/体感 ≥35℃ 或 ≤-15℃/PM2.5>150）优先于训练：户外课取消或改室内，这类安全动作不占每周 2 次主动调整额度，但要记录。
+- 极端天气（雷暴/暴雪/暴雨/结冰/体感 ≥35℃ 或 ≤-15℃/AQI>200 且有站点实测）优先于训练：户外课取消或改室内，这类安全动作不占每周 2 次主动调整额度，但要记录。
 - 比赛日医疗与急救以赛事官方与现场医护为准，不以本 skill 的判断替代。

@@ -16,7 +16,7 @@ const MAX_ICON_BYTES = 256 * 1024;
 
 test('package.json declares the expected bundle identity', () => {
   assert.equal(pkg.name, 'dsh-endurance-coach');
-  assert.equal(pkg.version, '1.1.0');
+  assert.equal(pkg.version, '1.1.1');
   assert.equal(pkg.type, 'module');
   assert.equal(pkg.main, 'lib/index.js');
   assert.equal(pkg.license, 'MIT');

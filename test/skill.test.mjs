@@ -20,8 +20,9 @@ const REFERENCES = [
   '07-injury-nutrition.md',
   '08-output-templates.md',
   '09-weather.md',
+  '10-trail.md',
 ];
-const SCRIPTS = ['vdot.py', 'readiness.py', 'nutrition.py', 'weather.py', 'init_athlete.py'];
+const SCRIPTS = ['vdot.py', 'readiness.py', 'nutrition.py', 'weather.py', 'trail.py', 'init_athlete.py'];
 const ASSETS = ['athlete.example.json', 'decisions.log.template.md'];
 
 /** Generic hygiene checks: the published skill must not carry machine paths, credentials, or private workspace wiring. */
@@ -73,9 +74,9 @@ test('SKILL.md frontmatter is valid and identifies the skill', () => {
   assert.ok(!content.startsWith('---'), 'body must not repeat the frontmatter');
 });
 
-test('SKILL.md keeps the decision axioms, workflows W1-W5, guardrails, and references index', () => {
+test('SKILL.md keeps the decision axioms, workflows W1-W6, guardrails, and references index', () => {
   const raw = readSkill();
-  for (const required of ['决策公理', 'W1', 'W2', 'W3', 'W4', 'W5', 'references/', '九条', '能力边界', '方法论']) {
+  for (const required of ['决策公理', 'W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'references/', '硬性训练规则', '能力边界', '方法论']) {
     assert.ok(raw.includes(required), `SKILL.md must keep section or term: ${required}`);
   }
   assert.ok(/Setup|首次|初始化/u.test(raw), 'SKILL.md must document first-time setup');
@@ -84,7 +85,7 @@ test('SKILL.md keeps the decision axioms, workflows W1-W5, guardrails, and refer
   assert.ok(raw.includes('coach/athlete.json'));
 });
 
-test('all nine reference files exist and are indexed by SKILL.md', () => {
+test('all ten reference files exist and are indexed by SKILL.md', () => {
   const raw = readSkill();
   for (const filename of REFERENCES) {
     const path = join(SKILL_DIR, 'references', filename);

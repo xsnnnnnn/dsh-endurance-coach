@@ -87,6 +87,7 @@ If the Intervals.icu MCP server is missing, the skill reports "that data was not
 | **W3 · Review** | "Review that run/ride" / "how was this week" | Completion-based review: what went well, what did not, what changes next. |
 | **W4 · Race prep** | 2–4 weeks before a race | Taper curve, segment pacing, fueling plan, heat/humidity correction, recovery week. |
 | **W5 · Reassessment** | Every 4 weeks or after a new result | Recalculate VDOT/thresholds; only fully replace zones when the change is meaningful. |
+| **W6 · Trail prep** | A trail race is on the calendar, or "let's go run in the hills" | Event demand analysis, km-effort and weekly-vert guardrails, uphill/downhill sessions, hourly fueling and post-race recovery. |
 
 ### Non-negotiable guardrails
 
@@ -111,7 +112,7 @@ dsh-endurance-coach/
 ├── skill/endurance-coach/    # the skill itself
 │   ├── SKILL.md
 │   ├── references/         # data sources, readiness, periodization, zones, ...
-│   ├── scripts/            # vdot, readiness, nutrition, weather, init_athlete
+│   ├── scripts/            # vdot, readiness, nutrition, weather, trail, init_athlete
 │   └── assets/             # athlete profile + decision-log templates
 ├── test/                   # node:test suites (not shipped in the npm tarball)
 ├── README.md

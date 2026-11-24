@@ -18,10 +18,12 @@
     "lat": 30.0,
     "lon": 120.0,
     "timezone": "Asia/Shanghai",
-    "note": "示例坐标（虚构）：换成你日常训练地的经纬度；Open-Meteo 支持直接用城市名查询坐标，填好后天气脚本即可取数。"
+    "aq_city": "",
+    "note": "示例坐标（虚构）：换成你日常训练地的经纬度；Open-Meteo 支持直接用城市名查询坐标，填好后天气脚本即可取数。aq_city 是 aqicn 的城市 slug（如 beijing / shanghai），用来取官方监测站实测的空气质量；留空则只用 CAMS 模型，输出会标「模型估算」，空气不参与取消户外课。"
   },
   "weather_policy": {
     "provider": "open-meteo",
+    "air_provider": "aqicn 站点实测锚定 + open-meteo CAMS 形状",
     "script": "scripts/weather.py",
     "latest_file": "coach/weather-latest.md",
     "indoor_fallback": {
@@ -29,7 +31,8 @@
       "bike": "骑行台"
     },
     "no_outdoor": {
-      "pm25_gt": 150,
+      "aqi_gt": 200,
+      "aqi_requires_station_obs": true,
       "apparent_max_c_ge": 35,
       "apparent_min_c_le": -15,
       "gust_kmh_ge": 75,

@@ -9,8 +9,9 @@
 | 项目 | 内容 |
 |---|---|
 | 预报/实况 | `https://api.open-meteo.com/v1/forecast`（模式融合，16 天；取 16 天做缓存） |
-| 空气质量 | `https://air-quality-api.open-meteo.com/v1/air-quality`（PM2.5 / US AQI，5 天） |
-| 位置 | `coach/athlete.json` → `location`（name / lat / lon / timezone） |
+| 空气质量（形状） | `https://air-quality-api.open-meteo.com/v1/air-quality`（CAMS PM2.5，5 天；**绝对值不可直接当实测**） |
+| 空气质量（量级） | `https://aqicn.org/aqicn/json/android/<city>/`（环保部监测站实测，逐小时回看 ~50h，免密钥） |
+| 位置 | `coach/athlete.json` → `location`（name / lat / lon / timezone / **aq_city**） |
 | 比赛地 | `coach/athlete.json` → `weather_policy.venues`（按日期登记的比赛地坐标，可标 `approx: true`） |
 | 取数脚本 | `<this skill>/scripts/weather.py`（纯标准库，无第三方依赖） |
 | 缓存 | 默认 `coach/.cache/weather.json`，TTL 30 分钟；可用 `--cache` 改路径；断网可回退 ≤36h 旧缓存并标注「可能过期」 |
@@ -58,8 +59,12 @@ python <this skill>/scripts/weather.py --offline
 | `app_min/app_max` | **体感**区间（℃）——所有修正都用体感，不用气温 |
 | `wind_max / gust_max` | 10m 平均风 / 阵风（km/h），同时给蒲福风级 |
 | `precip_mm / precip_prob` | 日降水量 / 最大降水概率 |
-| `pm25_mean / pm25_max / us_aqi_max` | 空气质量（缺省为 None，**不要用 0 代替**） |
-| `aqi_label` | 国标 PM2.5 24h 平均分档：优/良/轻度/中度/重度/严重 |
+| `pm25_mean / pm25_max` | 校准后的 PM2.5（实测锚定；缺省为 None，**不要用 0 代替**） |
+| `aqi_eff` | **判级用的 AQI**（训练窗口那 2 小时里最差的一小时；今天还会和「此刻」取高者） |
+| `aqi_max` | 全天最高 AQI（只用于提示，不单独判级） |
+| `aq_source` | `obs` 实测 / `obs_partial` 部分实测 / `calibrated` 实测校准 / `model` 纯模型 |
+| `aq_hard` | 这份 AQ 是否「有实测锚定且在 2 天内」——只有 true 才允许单独取消户外课 |
+| `aqi_label` | 中国 AQI 六级：优/良/轻度污染/中度污染/重度污染/严重污染 |
 | `verdict` | `适合户外` / `注意` / `不宜户外` / `危险·禁止户外` |
 | `flags` | 命中项：雪、结冰、雨雪、雷暴、暴雪、高温、严寒、污染、大风、低温、空气一般… |
 | `pace_adjust` | `{low, high, note}`，目标配速建议慢多少 s/km + 原因（脚本算好，别自己加） |
@@ -105,17 +110,25 @@ python <this skill>/scripts/weather.py --offline
 | ≥25mm 或 雷暴 | 危险·禁止户外 | 改室内或取消 |
 | 大雪 ≥20mm 或 风雪（雪+阵风≥62） | 危险·禁止户外 | 改室内或取消 |
 
-### 4.4 空气质量（国标 PM2.5 日均）
+### 4.4 空气质量（中国 AQI，站点实测锚定）
 
-| PM2.5 | 判级 | 动作 |
+| AQI | 判级 | 动作 |
 |---|---|---|
-| ≤35 优 / ≤75 良 | 适合 | 正常 |
-| 75–115 轻度 | 注意 | 只做有氧，不上质量课；避开早晚高峰 |
-| 115–150 中度 | 注意 | 质量课改室内；户外只做短有氧 |
-| 150–250 重度 | 不宜户外 | 停止户外训练 |
-| >250 严重 | 危险 | 停止户外；改室内或休息 |
+| ≤50 优 / ≤100 良 | 适合 | 正常 |
+| 101–150 轻度 | 注意 | 只做有氧，不上质量课；避开早晚高峰 |
+| 151–200 中度 | 注意 | 质量课改室内；户外只做短有氧 |
+| 201–300 重度 | 不宜户外 | 停止户外训练（**须有站点实测**） |
+| >300 严重 | 危险 | 停止户外；改室内或休息 |
 
-> 空气是**加分项**：AQI 预报只到 5 天，超出为 None，不要编一个数字。
+> **为什么不再看 PM2.5 浓度**：Open-Meteo 的空气质量来自 CAMS 全球模式，在中国北方平原系统性偏高
+> ——实测北京海淀 2026-11-22~24 的 45 个配对小时，站点中位 6 µg/m³、模型 59 µg/m³，比例中位 **6.4×**
+> （p90 24.9×）。直接拿模型值套阈值会把「优」判成「重度污染」，从而误取消户外课。
+>
+> 现在的做法：① aqicn（环保部监测站）实测锚定绝对量；② CAMS 只贡献逐小时**形状**，比例因子取最近
+> 48h「实测/模型」中位比自动推算；③ 判级看**训练窗口**而不是全天均值；④ 没有实测或超过 2 天，
+> AQ 最多给「注意」，不据此取消或改期。没填 `location.aq_city` 时自动退回纯模型，并在输出里标「模型估算」。
+>
+> 空气是**加分项**：AQ 预报只到 5 天，超出为 None，不要编一个数字。
 
 ### 4.5 其他
 
@@ -131,7 +144,10 @@ python <this skill>/scripts/weather.py --offline
 score = |体感-10| × (0.55 偏冷 / 0.9 偏热)
       + 降水概率/10 + 降水量×2
       + 0.4×max(0, 平均风-15) + 0.02×max(0, 阵风-25)
+      + 0.05×max(0, AQI-50)   ← 上限 10，AQI 100 罚 2.5 / 150 罚 5 / 200 罚 7.5
 ```
+
+- 窗口报出的 `window.aqi` 是那 2 小时里**最差一小时**的 AQI（在这段里跑，谁高按谁算）。
 
 - 用途：给「今天/明天几点跑最舒服」的建议，**不是命令**；用户作息固定时只说温度/降水，不硬劝改时间。
 - 今天的机会窗口已过（当前时间晚于窗口结束）时脚本会标注「今天已过，明天再看」。
@@ -189,7 +205,8 @@ score = |体感-10| × (0.55 偏冷 / 0.9 偏热)
 ## 10. 维护
 
 - 改阈值 → 改 `<this skill>/scripts/weather.py` 的 `classify_day / pace_adjust / heat_tier / cold_tier`，同步改本文档。
-- 换地点 → 改 `coach/athlete.json` 的 `location`（不用改代码）。
+- 改空气口径 → 同样只在脚本里（`calibration / _pm25_hourly / _aq_slice`），不要在对话里临时换数据源或手改倍数。
+- 换地点 → 改 `coach/athlete.json` 的 `location`（不用改代码）；同时把 `location.aq_city` 填成 aqicn 的城市 slug（如 `beijing`），留空则跳过站点实测、只用模型。
 - 换缓存位置/档案位置 → `--cache` / `--athlete`，或环境变量 `ENDURANCE_COACH_DIR`。
 - 调试 → `weather.py --offline`（读缓存）、`--json`（查字段）、`--out-md <tmp>`（试落盘）。
 - 不要随意改请求里的 `timezone`：日界会错。用 `location.timezone`（缺省 `auto`，即按坐标当地时区）。
