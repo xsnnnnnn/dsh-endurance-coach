@@ -106,7 +106,7 @@
     "max_hr_bpm": 190,
     "weight_kg": 70.0,
     "source": "示例：来自 CP20 测试或码表平台的阈值评估",
-    "note": "示例：骑行数据以 iGPSPORT 等码表平台为准；单次 NP/IF/TSS 可信，平台自带的 CTL 类综合负荷算法未经验证，别和 Intervals.icu 混用。"
+    "note": "示例：骑行数据全部来自 COROS（码表录的才有功率）；单次 NP/IF/TSS 可直接用，综合负荷取 COROS 的短期/长期负荷，不要混用其他平台的 CTL 算法。"
   },
   "pending_tests": [
     {

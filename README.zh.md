@@ -2,7 +2,7 @@
 
 **耐力教练** —— 给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 用的耐力训练决策技能（skill），打包成可安装的 DSH skill-provider bundle。
 
-它把 COROS、iGPSPORT、Intervals.icu 的训练数据转成具体决策：今天练不练、这一周怎么排、某次跑步/骑行复盘、赛前怎么准备、什么时候重新评估能力。技能文件随包分发；插件把它注册进 DSH 的技能注册表，模型和用户都能像内置技能一样加载。
+它把 COROS 的训练数据（跑步/骑行/计划/睡眠/恢复/负荷）转成具体决策：今天练不练、这一周怎么排、某次跑步/骑行复盘、赛前怎么准备、什么时候重新评估能力。技能文件随包分发；插件把它注册进 DSH 的技能注册表，模型和用户都能像内置技能一样加载。
 
 - 包名：`dsh-endurance-coach`（DSH 插件 bundle，技能提供方）
 - 技能名：`endurance-coach`
@@ -72,8 +72,7 @@ dsh plugin --profile desktop add /path/to/dsh-endurance-coach
 | Node.js | `>= 20` | 宿主插件运行时。bundle 自身**零 npm 运行时依赖**。 |
 | Python | 3.10+ | 随包脚本只使用 **标准库**。 |
 | COROS 数据（推荐） | [`dsh-coros`](https://github.com/xsnnnnnn/dsh-coros) 插件 | 技能的主力数据源：跑步、骑行（码表）、训练计划、睡眠与恢复。 |
-| iGPSPORT（可选） | MCP server | 骑行补充：FTP/LTHR 档案、赛段、早期历史。 |
-| Intervals.icu（可选） | MCP server | 综合负荷（CTL/ATL/TSB）。 |
+| 阈值（FTP/LTHR） | 你自己测 | CP20 或场地实测，或手动填写；不从别的平台抓。 |
 | 天气 | 无 | 自带 `weather.py` 走 Open-Meteo，无需注册或登录。 |
 
 推荐的配套安装命令：
@@ -164,4 +163,4 @@ MIT —— Copyright (c) 2026 xsnnnnnn。
 | [strava-coach](https://github.com/AlvaroLaraFF/strava-coach) | 三项分配、合并负荷、游泳指标 |
 | [endurance-coaching](https://github.com/MrHadiSatrio/Skills) | 周期化理论与区间定义 |
 
-这些项目多数默认依赖 Strava API；本技能刻意改读 COROS / iGPSPORT / Intervals.icu / 手动输入。
+这些项目多数默认依赖 Strava API；本技能刻意只读 **COROS**（外加手动输入）。

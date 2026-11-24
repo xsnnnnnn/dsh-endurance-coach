@@ -2,7 +2,7 @@
 
 **Endurance Coach (耐力教练)** — an endurance-coaching skill for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness), packaged as an installable DSH skill-provider bundle.
 
-It turns training data from COROS, iGPSPORT, and Intervals.icu into concrete training decisions: whether to train today, what the week should look like, how a session went, how to prepare for a race, and when to re-evaluate fitness. The skill files ship with the package; the plugin registers the skill with DSH's skill registry so the model and the user can load it like any built-in skill.
+It turns COROS training data (runs, rides, plans, sleep, recovery, load) into concrete training decisions: whether to train today, what the week should look like, how a session went, how to prepare for a race, and when to re-evaluate fitness. The skill files ship with the package; the plugin registers the skill with DSH's skill registry so the model and the user can load it like any built-in skill.
 
 - Package: `dsh-endurance-coach` (DSH plugin bundle, skill provider)
 - Skill name: `endurance-coach`
@@ -72,8 +72,7 @@ Create them from the bundled templates:
 | Node.js | `>= 20` | Host plugin runtime. The bundle itself has **zero npm runtime dependencies**. |
 | Python | 3.10+ | Only the Python **standard library** is used by the bundled scripts. |
 | COROS data (recommended) | [`dsh-coros`](https://github.com/xsnnnnnn/dsh-coros) plugin | Primary source: runs, rides (head unit), plans, sleep and recovery. |
-| iGPSPORT (optional) | MCP server | Cycling supplement: FTP/LTHR profile, segments, older history. |
-| Intervals.icu (optional) | MCP server | Combined training load (CTL/ATL/TSB). |
+| Thresholds (FTP/LTHR) | your own test | From a CP20 / field test, or entered manually — never pulled from another platform. |
 | Weather | none | The bundled `weather.py` uses Open-Meteo, which needs no sign-up. |
 
 Recommended companion install:
@@ -164,4 +163,4 @@ The coaching methodology was distilled from ideas in these open-source projects;
 | [strava-coach](https://github.com/AlvaroLaraFF/strava-coach) | triathlon allocation, combined load, swim metrics |
 | [endurance-coaching](https://github.com/MrHadiSatrio/Skills) | periodization theory and zone definitions |
 
-These projects mostly assume Strava APIs; this skill deliberately reads COROS / iGPSPORT / Intervals.icu / manual input instead.
+These projects mostly assume Strava APIs; this skill deliberately reads **COROS only** (plus manual input).

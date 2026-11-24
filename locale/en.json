@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Endurance Coach",
-    "description": "Turns COROS (runs, rides, plans, sleep, recovery) — with iGPSPORT cycling supplements and Intervals.icu load — into concrete decisions: train today or not, weekly planning, session reviews, race prep, trail prep and reassessment. Plans are written to COROS, always confirmed first."
+    "description": "One data source only: COROS (runs, rides, plans, sleep, recovery, load), plus Open-Meteo weather. Turns that into today's decision, weekly plans, session reviews, race and trail prep, and reassessment. Plans are written to COROS only, always confirmed first."
   }
 }
