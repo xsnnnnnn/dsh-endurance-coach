@@ -9,6 +9,13 @@ It turns COROS training data (runs, rides, plans, sleep, recovery, load) into co
 - License: MIT
 - No personal data is bundled. Your athlete profile lives in **your** workspace.
 
+## What's new (v3.0.0)
+
+- **One data source: COROS.** Runs, rides (with head-unit power), training plans, sleep and HRV, recovery and training load all come from COROS. iGPSPORT and Intervals.icu are no longer used; load comes from COROS short-term/long-term load and its load ratio (TSB is derived from the two and labelled as such).
+- **Weather and air-quality fix.** Air quality is now anchored to official monitoring-station observations (aqicn), with the Open-Meteo CAMS model contributing only the hourly shape. Grading uses China AQI at the actual training window, so a model overestimate can no longer turn "good" air into "heavy pollution" and cancel an outdoor session. With no station data it only flags, never cancels.
+- **New trail-running module.** Event demand analysis (distance, vertical, technicality, aid stations), four trail capacities, weekly vertical guardrails, uphill and downhill sessions, hourly fueling, and post-race eccentric recovery (`references/10-trail.md` + `scripts/trail.py`).
+- Plans are written to COROS only; thresholds come from your own field test or manual input.
+
 ## Install
 
 Requires DeepSeek Harness `>= 0.2.1-rc.1` and Node.js `>= 20`.
