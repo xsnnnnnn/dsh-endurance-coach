@@ -1,6 +1,6 @@
 # 09 · 天气取数与训练修正
 
-> 目标：天气不再是「拍脑袋加一句注意保暖」，而是**可复现的取数 + 确定性阈值 + 写回训练事件**。
+> 目标：天气不再是「拍脑袋加一句注意保暖」，而是**可复现的取数 + 确定性阈值 + 写回 courseDescription**。
 > 数据源 Open-Meteo（无需注册或登录）；阈值实现在 `<this skill>/scripts/weather.py`，改阈值就改那个文件，**不要在对话里临时改口**。
 > 坐标来自 `coach/athlete.json` 的 `location`，不允许在脚本里硬编码任何人的位置。
 
@@ -158,9 +158,9 @@ score = |体感-10| × (0.55 偏冷 / 0.9 偏热)
 - 天气是**叠加层**：绿灯也可能因为暴雪改室内；红灯也可能因为天气好而只是慢跑。
 - 极端天气取消/改室内属于**安全动作**，不占「每周最多 2 次主动调整」额度，但必须记录。
 
-## 7. 写回 Intervals.icu 事件（描述模板）
+## 7. 写回训练日历（courseDescription 模板）
 
-改某天课程时，把天气与替代方案写进事件的 `workout_doc.description`（用 `add_or_update_event` 写回；**写前先说明并等用户确认**），例如（示例，example）：
+改某天课程时，把天气与替代方案写进 `courseDescription`（COROS 计划用 `queryTrainingPlanDetails` → `updateTrainingPlan` 整日提交；**写前先说明并等用户确认**），例如（示例，example）：
 
 ```
 预计 12-05 周六 0~4℃、大雪 14.5mm（概率 100%）、路面可能结冰：

@@ -19,7 +19,7 @@
     "lon": 120.0,
     "timezone": "Asia/Shanghai",
     "aq_city": "",
-    "note": "示例坐标（虚构）：换成你日常训练地的经纬度；Open-Meteo 支持直接用城市名查询坐标，填好后天气脚本即可取数。aq_city 是 aqicn 的城市 slug（如 beijing / shanghai），用来取官方监测站实测的空气质量；留空则只用 CAMS 模型，输出会标「模型估算」，空气不参与取消户外课。"
+    "note": "示例坐标（虚构）：换成你日常训练地的经纬度；Open-Meteo 支持直接用城市名查询坐标，填好后天气脚本即可取数。aq_city 是 aqicn 的城市 slug（如 beijing），用来取官方监测站实测的空气质量；留空则只用 CAMS 模型，输出会标「模型估算」，空气不参与取消户外课。"
   },
   "weather_policy": {
     "provider": "open-meteo",
@@ -57,7 +57,7 @@
       }
     ]
   },
-  "fitness_baseline": {
+  "coros_baseline": {
     "vo2max": 48,
     "running_level": 60,
     "threshold_pace_s_per_km": 302,
@@ -68,7 +68,7 @@
       "half": "1:42:00",
       "marathon": "3:44:00"
     },
-    "note": "示例：可来自 Intervals.icu 的阈值/比赛预测与功率曲线、设备评估，或一次真实比赛；没有数据就用手动测试或已完赛成绩，别凭感觉填。"
+    "note": "示例：来自设备评估或一次真实比赛；没有设备数据就用手动测试或已完赛成绩，别凭感觉填。"
   },
   "races": [
     {
@@ -105,8 +105,8 @@
     "lthr_bpm": 160,
     "max_hr_bpm": 190,
     "weight_kg": 70.0,
-    "source": "示例：默认取 Intervals.icu 的 eFTP / 功率曲线，或 CP20 测试；FTP/LTHR 以 Intervals.icu 为准，两者不一致时以最近的 CP20 测试为准",
-    "note": "示例：骑行活动与明细都取 Intervals.icu；不要把其它平台的数据加进来或用来补差。单次 NP/IF/TSS 与 eFTP 以 Intervals.icu 为准。"
+    "source": "示例：来自 CP20 测试或码表平台的阈值评估",
+    "note": "示例：骑行数据以 iGPSPORT 等码表平台为准；单次 NP/IF/TSS 可信，平台自带的 CTL 类综合负荷算法未经验证，别和 Intervals.icu 混用。"
   },
   "pending_tests": [
     {
@@ -114,7 +114,7 @@
       "date": "2026-12-06",
       "target": "20 分钟全力平均功率",
       "formula": "FTP ≈ 20min 平均功率 × 0.95",
-      "note": "示例：测完再更新 FTP；改 Intervals.icu 或档案里的阈值前必须先征得本人同意。"
+      "note": "示例：测完再更新 FTP；改第三方平台的 FTP 前必须先征得本人同意。"
     }
   ],
   "constraints": {
@@ -134,8 +134,9 @@
     "hrv_baseline_ms": 62,
     "resting_hr_7d_baseline_bpm": 52,
     "rhr_red_flag_delta_bpm": 5,
+    "sleep_score_red_flag": 70,
     "sleep_hours_red_flag": 6.0,
     "load_ratio_red_flag": 1.3,
-    "note": "示例：红灯需满足任意 2 项；主观疲劳反馈单独即可触发红灯。数值请按自己的基线设置（连续测 2-4 周再定）。HRV/静息心率/睡眠时长都取 Intervals.icu；ICU 没有睡眠评分，评分不参与表决。"
+    "note": "示例：红灯需满足任意 2 项；主观疲劳反馈单独即可触发红灯。数值请按自己的基线设置（连续测 2-4 周再定）。"
   }
 }
